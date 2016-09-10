@@ -1,24 +1,13 @@
 package com.sdstf.info_go;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import android.app.Activity;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
+
+import com.google.android.gms.maps.*;
 
 
-import com.sdstf.info_go.dummy.DummyContent;
-
-import java.util.List;
 
 /**
  * An activity representing a list of Items. This activity
@@ -27,8 +16,17 @@ import java.util.List;
  * lead to a {@link ItemDetailActivity} representing
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
+ * <p/>
+ * The activity makes heavy use of fragments. The list of items is a
+ * {@link ItemListFragment} and the item details
+ * (if present) is a {@link ItemDetailFragment}.
+ * <p/>
+ * This activity also implements the required
+ * {@link ItemListFragment.Callbacks} interface
+ * to listen for item selections.
  */
-public class ItemListActivity extends AppCompatActivity {
+public class ItemListActivity extends AppCompatActivity
+        implements ItemListFragment.Callbacks {
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -41,101 +39,63 @@ public class ItemListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item_list);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setTitle(getTitle());
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
-        View recyclerView = findViewById(R.id.item_list);
-        assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView);
-
         if (findViewById(R.id.item_detail_container) != null) {
             // The detail container view will be present only in the
-            // large-screen layouts (res/values-w900dp).
-            // If this view is present, then the
+            // large-screen layouts (res/values-large and
+            // res/values-sw600dp). If this view is present, then the
             // activity should be in two-pane mode.
             mTwoPane = true;
+
+            // In two-pane mode, list items should be given the
+            // 'activated' state when touched.
+            ((ItemListFragment) getFragmentManager()
+                    .findFragmentById(R.id.item_list))
+                    .setActivateOnItemClick(true);
         }
+
+        // TODO: If exposing deep links into your app, handle intents here.
     }
 
-    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(DummyContent.ITEMS));
-    }
+    /**
+     * Callback method from {@link ItemListFragment.Callbacks}
+     * indicating that the item with the given ID was selected.
+     */
+    @Override
+    public void onItemSelected(String id) {
+        if (mTwoPane) {
+            // In two-pane mode, show the detail view in this activity by
+            // adding or replacing the detail fragment using a
+            // fragment transaction.
+            Bundle arguments = new Bundle();
+            arguments.putString(ItemDetailFragment.ARG_ITEM_ID, id);
+            if (id.equals("2")) { // for option item 2, use a map fragment
+                ItemDetailMapFragment fragmentWithMap = new ItemDetailMapFragment();
+               // mapfragment.setArguments(arguments); // not used in this example
+                getFragmentManager().beginTransaction()
+                        .replace(R.id.item_detail_container, fragmentWithMap)
+                        .commit();
 
-    public class SimpleItemRecyclerViewAdapter
-            extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
-        private final List<DummyContent.DummyItem> mValues;
-
-        public SimpleItemRecyclerViewAdapter(List<DummyContent.DummyItem> items) {
-            mValues = items;
-        }
-
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_list_content, parent, false);
-            return new ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(final ViewHolder holder, int position) {
-            holder.mItem = mValues.get(position);
-            holder.mIdView.setText(mValues.get(position).id);
-            holder.mContentView.setText(mValues.get(position).content);
-
-            holder.mView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (mTwoPane) {
-                        Bundle arguments = new Bundle();
-                        arguments.putString(ItemDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-                        ItemDetailFragment fragment = new ItemDetailFragment();
-                        fragment.setArguments(arguments);
-                        getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.item_detail_container, fragment)
-                                .commit();
-                    } else {
-                        Context context = v.getContext();
-                        Intent intent = new Intent(context, ItemDetailActivity.class);
-                        intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-
-                        context.startActivity(intent);
-                    }
-                }
-            });
-        }
-
-        @Override
-        public int getItemCount() {
-            return mValues.size();
-        }
-
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            public final View mView;
-            public final TextView mIdView;
-            public final TextView mContentView;
-            public DummyContent.DummyItem mItem;
-
-            public ViewHolder(View view) {
-                super(view);
-                mView = view;
-                mIdView = (TextView) view.findViewById(R.id.id);
-                mContentView = (TextView) view.findViewById(R.id.content);
+            }
+            else { // options other than 1
+                ItemDetailFragment fragment = new ItemDetailFragment();
+                fragment.setArguments(arguments);
+                getFragmentManager().beginTransaction()
+                        .replace(R.id.item_detail_container, fragment)
+                        .commit();
             }
 
-            @Override
-            public String toString() {
-                return super.toString() + " '" + mContentView.getText() + "'";
+        } else {
+            if (id.equals("2")) { // for option item 2, use a map fragment
+                // In single-pane mode, simply start the detail activity
+                // for the selected item ID.
+                Intent mapDetailIntent = new Intent(this, ItemDetailMapActivity.class);
+                startActivity(mapDetailIntent);
+            }
+            else { //options other than 1
+                Intent detailIntent = new Intent(this, ItemDetailActivity.class);
+                detailIntent.putExtra(ItemDetailFragment.ARG_ITEM_ID, id);
+                startActivity(detailIntent);
             }
         }
     }
