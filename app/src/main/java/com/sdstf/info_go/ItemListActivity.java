@@ -25,8 +25,7 @@ import com.google.android.gms.maps.*;
  * {@link ItemListFragment.Callbacks} interface
  * to listen for item selections.
  */
-public class ItemListActivity extends AppCompatActivity
-        implements ItemListFragment.Callbacks {
+public class ItemListActivity extends AppCompatActivity implements ItemListFragment.Callbacks {
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
