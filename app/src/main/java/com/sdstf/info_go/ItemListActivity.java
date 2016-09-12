@@ -1,8 +1,11 @@
 package com.sdstf.info_go;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.app.Activity;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 
 import com.google.android.gms.maps.*;
@@ -52,6 +55,9 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
                     .setActivateOnItemClick(true);
         }
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        }
         // TODO: If exposing deep links into your app, handle intents here.
     }
 
@@ -67,7 +73,7 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
             // fragment transaction.
             Bundle arguments = new Bundle();
             arguments.putString(ItemDetailFragment.ARG_ITEM_ID, id);
-            if (id.equals("2")) { // for option item 2, use a map fragment
+            if (id.equals("1")) { // for option item 2, use a map fragment
                 ItemDetailMapFragment fragmentWithMap = new ItemDetailMapFragment();
                // mapfragment.setArguments(arguments); // not used in this example
                 getFragmentManager().beginTransaction()
@@ -85,7 +91,7 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
             }
 
         } else {
-            if (id.equals("2")) { // for option item 2, use a map fragment
+            if (id.equals("1")) { // for option item 2, use a map fragment
                 // In single-pane mode, simply start the detail activity
                 // for the selected item ID.
                 Intent mapDetailIntent = new Intent(this, ItemDetailMapActivity.class);
