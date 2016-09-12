@@ -31,7 +31,7 @@ public class ItemDetailMapActivity extends AppCompatActivity   {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.map_item_detail);
+        setContentView(R.layout.activity_item_detail);
 
         // Show the Up button in the action bar.
         //getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -45,18 +45,14 @@ public class ItemDetailMapActivity extends AppCompatActivity   {
         //
         // http://developer.android.com/guide/components/fragments.html
         //
-       // if (savedInstanceState == null) {
-            // Create the detail fragment and add it to the activity
-            // using a fragment transaction.
-           // Bundle arguments = new Bundle();
-            //arguments.putString(ItemDetailFragment.ARG_ITEM_ID,
-              //      getIntent().getStringExtra(ItemDetailFragment.ARG_ITEM_ID));
-         //   ItemDetailMapFragment mapfragment = new ItemDetailMapFragment();
-            //fragment.setArguments(arguments);
-         //   getFragmentManager().beginTransaction()
-         //           .add(R.id.item_mapdetail_container, mapfragment)
-         //           .commit();
-      //  }
+        if (savedInstanceState == null) {
+            // Create the detail fragment and add it to the activity using a fragment transaction.
+            Bundle arguments = new Bundle();
+            arguments.putString(ItemDetailMapFragment.ARG_ITEM_ID, getIntent().getStringExtra(ItemDetailMapFragment.ARG_ITEM_ID));
+            ItemDetailMapFragment mapfragment = new ItemDetailMapFragment();
+            mapfragment.setArguments(arguments);
+            getFragmentManager().beginTransaction().add(R.id.item_detail_container, mapfragment).commit();
+       }
     }
 
     @Override
@@ -78,7 +74,7 @@ public class ItemDetailMapActivity extends AppCompatActivity   {
     @Override
     protected void onResume() {
         super.onResume();
-        setUpMapIfNeeded();
+        //setUpMapIfNeeded();
     }
 
     private void setUpMapIfNeeded() {

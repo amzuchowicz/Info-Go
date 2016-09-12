@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.sdstf.info_go.dummy.DummyContent;
@@ -22,8 +23,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
  * in two-pane mode (on tablets) or a {@link ItemDetailActivity}
  * on handsets.
  */
-public class ItemDetailMapFragment extends Fragment
- {
+public class ItemDetailMapFragment extends Fragment {
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
@@ -31,6 +31,7 @@ public class ItemDetailMapFragment extends Fragment
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private MapFragment myMapFragment;
+
 
     public static final String ARG_ITEM_ID = "item_id";
 
@@ -51,6 +52,8 @@ public class ItemDetailMapFragment extends Fragment
     public void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+
+
     }
 
      private void setUpMapIfNeeded() {
@@ -61,7 +64,14 @@ public class ItemDetailMapFragment extends Fragment
              // to find the map fragment inside this fragment,
              // though it has unique id (i.e., R.id.map), you need to use the child's fragment manager.
              // Using getFragmentManager() instead of getChildFragmentManager() below will not work
-             myMapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+             if(getFragmentManager().findFragmentById(R.id.map) != null) {
+                 // Our map fragment is inside an activity
+                 myMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
+             }
+             else {
+                 // Our map fragment is inside a parent fragment (tablet)
+                 myMapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+             }
 
              myMapFragment.getMapAsync(new OnMapReadyCallback() {
                  @Override
@@ -89,24 +99,29 @@ public class ItemDetailMapFragment extends Fragment
         super.onCreate(savedInstanceState);
 
 
-       // if (getArguments().containsKey(ARG_ITEM_ID)) {
+       //if (getArguments().containsKey(ARG_ITEM_ID)) {
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-         //   mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
-        //}
+        //   mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+       //}
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.map_item_detail, container, false);
 
         // Show the dummy content as text in a TextView.
      //   if (mItem != null) {
        //     ((TextView) rootView.findViewById(R.id.item_detail)).setText(mItem.content);
        // }
-
+        Button btnRecordLocation = (Button) rootView.findViewById(R.id.btnRecordLocation);
+        btnRecordLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                System.out.println("test");
+            }
+        });
         return rootView;
     }
 

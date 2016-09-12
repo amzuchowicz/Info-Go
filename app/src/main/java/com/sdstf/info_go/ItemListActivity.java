@@ -89,6 +89,7 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
                 // In single-pane mode, simply start the detail activity
                 // for the selected item ID.
                 Intent mapDetailIntent = new Intent(this, ItemDetailMapActivity.class);
+                mapDetailIntent.putExtra(ItemDetailMapFragment.ARG_ITEM_ID, id);
                 startActivity(mapDetailIntent);
             }
             else { //options other than 1
