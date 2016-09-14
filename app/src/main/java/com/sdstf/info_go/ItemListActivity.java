@@ -58,6 +58,9 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, 1);
+        }
         // TODO: If exposing deep links into your app, handle intents here.
     }
 
@@ -79,8 +82,10 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
                 getFragmentManager().beginTransaction()
                         .replace(R.id.item_detail_container, fragmentWithMap)
                         .commit();
-
-
+            }
+            else if(id.equals("2")) {
+                PlaceDetailFragment placeFragment = new PlaceDetailFragment();
+                getFragmentManager().beginTransaction().replace(R.id.item_detail_container, placeFragment).commit();
             }
             else { // options other than 1
                 ItemDetailFragment fragment = new ItemDetailFragment();
@@ -97,6 +102,11 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
                 Intent mapDetailIntent = new Intent(this, ItemDetailMapActivity.class);
                 mapDetailIntent.putExtra(ItemDetailMapFragment.ARG_ITEM_ID, id);
                 startActivity(mapDetailIntent);
+            }
+            else if (id.equals("2")) {
+                Intent placeDetailIntent = new Intent(this, PlaceDetailActivity.class);
+                placeDetailIntent.putExtra(ItemDetailMapFragment.ARG_ITEM_ID, id);
+                startActivity(placeDetailIntent);
             }
             else { //options other than 1
                 Intent detailIntent = new Intent(this, ItemDetailActivity.class);

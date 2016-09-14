@@ -25,9 +25,9 @@ public class DummyContent {
 
     static {
         // Add 3 sample items.
-        addItem(new DummyItem("1", "Locations"));
-        addItem(new DummyItem("2", "Item 2"));
-        addItem(new DummyItem("3", "Item 3"));
+        addItem(new DummyItem("1", "Record & View Locations"));
+        addItem(new DummyItem("2", "View Place Information"));
+        addItem(new DummyItem("3", "Geofencing Around Hot Spots"));
         addItem(new DummyItem("4", "Item 4"));
     }
 
