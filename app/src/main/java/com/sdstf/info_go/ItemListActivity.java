@@ -87,6 +87,10 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
                 PlaceDetailFragment placeFragment = new PlaceDetailFragment();
                 getFragmentManager().beginTransaction().replace(R.id.item_detail_container, placeFragment).commit();
             }
+            else if(id.equals("3")) {
+                GeofenceDetailFragment geofenceFragment = new GeofenceDetailFragment();
+                getFragmentManager().beginTransaction().replace(R.id.item_detail_container, geofenceFragment).commit();
+            }
             else { // options other than 1
                 ItemDetailFragment fragment = new ItemDetailFragment();
                 fragment.setArguments(arguments);
@@ -107,6 +111,11 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
                 Intent placeDetailIntent = new Intent(this, PlaceDetailActivity.class);
                 placeDetailIntent.putExtra(ItemDetailMapFragment.ARG_ITEM_ID, id);
                 startActivity(placeDetailIntent);
+            }
+            else if (id.equals("3")) {
+                Intent geofenceDetailIntent = new Intent(this, GeofenceDetailActivity.class);
+                geofenceDetailIntent.putExtra(ItemDetailMapFragment.ARG_ITEM_ID, id);
+                startActivity(geofenceDetailIntent);
             }
             else { //options other than 1
                 Intent detailIntent = new Intent(this, ItemDetailActivity.class);

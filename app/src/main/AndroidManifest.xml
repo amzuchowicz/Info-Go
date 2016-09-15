@@ -12,51 +12,58 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBmYJzpik_BP7bF0DL5bESiRQmujvuak70" />
-
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
         <activity
             android:name=".ItemListActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".ItemDetailActivity"
             android:label="@string/title_item_detail"
-            android:parentActivityName=".ItemListActivity" >
+            android:parentActivityName=".ItemListActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ItemListActivity" />
         </activity>
-
         <activity
             android:name=".ItemDetailMapActivity"
             android:label="Record &amp; View Locations"
-            android:parentActivityName=".ItemListActivity" >
+            android:parentActivityName=".ItemListActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ItemListActivity" />
         </activity>
-
         <activity
             android:name=".PlaceDetailActivity"
             android:label="View Place Information"
-            android:parentActivityName=".ItemListActivity" >
+            android:parentActivityName=".ItemListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ItemListActivity" />
+        </activity>
+        <activity
+            android:name=".GeofenceDetailActivity"
+            android:label="Geofencing Around Hot Spots"
+            android:parentActivityName=".ItemListActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ItemListActivity" />
         </activity>
 
+        <service
+            android:name=".GeofenceTransitionsIntentService"
+            android:exported="false"></service>
     </application>
 
 </manifest>
