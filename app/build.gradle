@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "24.0.1"
+    buildToolsVersion "24.0.2"
 
     defaultConfig {
         applicationId "com.sdstf.info_go"
@@ -30,6 +30,9 @@ dependencies {
     //compile 'com.android.support:support-v4:23.4.0'
     //compile 'com.android.support:recyclerview-v7:23.4.0'
     //compile 'com.android.support:design:23.4.0'
-    compile 'com.google.android.gms:play-services:9.4.0'
+    compile 'com.google.android.gms:play-services-maps:9.6.1'
+    compile 'com.google.android.gms:play-services-places:9.6.1'
+    compile 'com.google.android.gms:play-services-location:9.6.1'
+
 
 }

@@ -105,6 +105,7 @@ public class ItemDetailMapFragment extends Fragment implements ConnectionCallbac
             });
         }
     }
+
     public void addMarker(Location newMarkerLocation) {
         if(mMap != null) {
             // Map has loaded and we can add marker
