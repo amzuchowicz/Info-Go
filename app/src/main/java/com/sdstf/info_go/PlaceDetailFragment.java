@@ -6,7 +6,9 @@ import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -17,6 +19,8 @@ import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
 import com.google.android.gms.location.places.Places;
 import com.sdstf.info_go.dummy.DummyContent;
+
+import java.util.ArrayList;
 
 /**
  * A fragment representing a single Item detail screen.
@@ -42,7 +46,8 @@ public class PlaceDetailFragment extends Fragment implements GoogleApiClient.OnC
      */
 
     private GoogleApiClient mGoogleApiClient;
-
+    private ArrayList<String> mPlaceArray = new ArrayList<>();
+    private ArrayAdapter<String> adapter;
 
     public PlaceDetailFragment() {
     }
@@ -78,8 +83,7 @@ public class PlaceDetailFragment extends Fragment implements GoogleApiClient.OnC
             //((TextView) rootView.findViewById(R.id.item_detail)).setText(mItem.content);
         //}
 
-        final TextView tvPlaceInfo = (TextView) rootView.findViewById(R.id.tvPlaceInfo);
-        final TextView tcGPS = (TextView) rootView.findViewById(R.id.tvGPS);
+        final ListView list = (ListView) rootView.findViewById(R.id.list);
 
         if(mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient
@@ -91,6 +95,7 @@ public class PlaceDetailFragment extends Fragment implements GoogleApiClient.OnC
                     //.enableAutoManage(getActivity(), this)
                     .build();
         }
+
         Button btnPlaceInfo = (Button) rootView.findViewById(R.id.btnPlaceInfo);
         btnPlaceInfo.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -107,13 +112,14 @@ public class PlaceDetailFragment extends Fragment implements GoogleApiClient.OnC
                     currentPlace.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
                         @Override
                         public void onResult(@NonNull PlaceLikelihoodBuffer placeLikelihoods) {
-                            String placeInfo = "";
+                            mPlaceArray.clear();
                             for(PlaceLikelihood placeLikelihood : placeLikelihoods) {
                                 //System.out.println(placeLikelihood.getPlace().getName());
-                                placeInfo = placeInfo + "> " + placeLikelihood.getPlace().getName() + "\n";
+                                mPlaceArray.add(placeLikelihood.getPlace().getName() + "");
                             }
-                            placeInfo = placeInfo.substring(0, placeInfo.length() - 1); // remove last \n
-                            tvPlaceInfo.setText(placeInfo);
+                            adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, mPlaceArray);
+                            list.setAdapter(adapter);
+
                             placeLikelihoods.release();
                         }
                     });
@@ -123,11 +129,12 @@ public class PlaceDetailFragment extends Fragment implements GoogleApiClient.OnC
                 }
             }
         });
+
+        btnPlaceInfo.callOnClick();
+
         return rootView;
     }
 
     @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {}
 }

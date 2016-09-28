@@ -1,6 +1,5 @@
 package com.sdstf.info_go;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -22,7 +21,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
  * This activity is mostly just a 'shell' activity containing nothing
  * more than a {@link ItemDetailFragment}.
  */
-public class ItemDetailMapActivity extends AppCompatActivity   {
+public class LocationDetailActivity extends AppCompatActivity   {
 
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
@@ -48,8 +47,8 @@ public class ItemDetailMapActivity extends AppCompatActivity   {
         if (savedInstanceState == null) {
             // Create the detail fragment and add it to the activity using a fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(ItemDetailMapFragment.ARG_ITEM_ID, getIntent().getStringExtra(ItemDetailMapFragment.ARG_ITEM_ID));
-            ItemDetailMapFragment mapfragment = new ItemDetailMapFragment();
+            arguments.putString(LocationDetailFragment.ARG_ITEM_ID, getIntent().getStringExtra(LocationDetailFragment.ARG_ITEM_ID));
+            LocationDetailFragment mapfragment = new LocationDetailFragment();
             mapfragment.setArguments(arguments);
             getFragmentManager().beginTransaction().add(R.id.item_detail_container, mapfragment).commit();
        }

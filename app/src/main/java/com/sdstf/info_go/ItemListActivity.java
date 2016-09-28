@@ -4,12 +4,8 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.app.Activity;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-
-import com.google.android.gms.maps.*;
-
 
 
 /**
@@ -61,6 +57,9 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, 1);
         }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.VIBRATE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.VIBRATE}, 1);
+        }
         // TODO: If exposing deep links into your app, handle intents here.
     }
 
@@ -77,7 +76,7 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
             Bundle arguments = new Bundle();
             arguments.putString(ItemDetailFragment.ARG_ITEM_ID, id);
             if (id.equals("1")) { // for option item 2, use a map fragment
-                ItemDetailMapFragment fragmentWithMap = new ItemDetailMapFragment();
+                LocationDetailFragment fragmentWithMap = new LocationDetailFragment();
                // mapfragment.setArguments(arguments); // not used in this example
                 getFragmentManager().beginTransaction()
                         .replace(R.id.item_detail_container, fragmentWithMap)
@@ -103,18 +102,18 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
             if (id.equals("1")) { // for option item 2, use a map fragment
                 // In single-pane mode, simply start the detail activity
                 // for the selected item ID.
-                Intent mapDetailIntent = new Intent(this, ItemDetailMapActivity.class);
-                mapDetailIntent.putExtra(ItemDetailMapFragment.ARG_ITEM_ID, id);
+                Intent mapDetailIntent = new Intent(this, LocationDetailActivity.class);
+                mapDetailIntent.putExtra(LocationDetailFragment.ARG_ITEM_ID, id);
                 startActivity(mapDetailIntent);
             }
             else if (id.equals("2")) {
                 Intent placeDetailIntent = new Intent(this, PlaceDetailActivity.class);
-                placeDetailIntent.putExtra(ItemDetailMapFragment.ARG_ITEM_ID, id);
+                placeDetailIntent.putExtra(LocationDetailFragment.ARG_ITEM_ID, id);
                 startActivity(placeDetailIntent);
             }
             else if (id.equals("3")) {
                 Intent geofenceDetailIntent = new Intent(this, GeofenceDetailActivity.class);
-                geofenceDetailIntent.putExtra(ItemDetailMapFragment.ARG_ITEM_ID, id);
+                geofenceDetailIntent.putExtra(LocationDetailFragment.ARG_ITEM_ID, id);
                 startActivity(geofenceDetailIntent);
             }
             else { //options other than 1

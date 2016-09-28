@@ -1,6 +1,7 @@
 package com.sdstf.info_go;
 
 import android.app.IntentService;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
@@ -8,6 +9,8 @@ import android.content.Intent;
 import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.RingtoneManager;
+import android.os.Vibrator;
 import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -109,13 +112,16 @@ public class GeofenceTransitionsIntentService extends IntentService {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
 
         // Define the notification settings.
-        builder.setSmallIcon(R.mipmap.ic_launcher)
+        builder.setSmallIcon(R.mipmap.ic_notification)
                 // In a real app, you may want to use a library like Volley
                 // to decode the Bitmap.
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
                 .setColor(Color.RED)
-                .setContentTitle(notificationDetails)
-                .setContentText("Hello World!")
+                .setContentTitle("Entered a Hot Spot")
+                .setContentText("You are within 100m of a hot spot.")
+                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                .setVibrate(new long[] {500, 500}) // off, on, off, on... in millisecs
+                .setLights(Color.YELLOW, 500, 500) // color, millisecs on, millisecs off
                 .setContentIntent(notificationPendingIntent);
 
         // Dismiss notification once the user touches it.

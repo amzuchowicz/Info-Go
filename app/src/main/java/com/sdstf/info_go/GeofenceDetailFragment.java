@@ -68,6 +68,7 @@ public class GeofenceDetailFragment extends Fragment implements GoogleApiClient.
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private MapFragment myMapFragment;
     private Location mLastLocation;
+    private int mIdCount = 0;
     private ArrayList<Marker> markers = new ArrayList<>();
     private ArrayList<Circle> circles = new ArrayList<>();
 
@@ -134,21 +135,16 @@ public class GeofenceDetailFragment extends Fragment implements GoogleApiClient.
 
                         @Override
                         public void onMarkerDragEnd(Marker marker) {
-                            //Geofence gf = mGeofenceList.get(markers.indexOf(marker));
-
-                            //circles.get(markers.indexOf(marker)).setCenter(marker.getPosition());
                             LocationServices.GeofencingApi.removeGeofences(mGoogleApiClient, getGeofencePendingIntent());
 
-                            Geofence newGeofence = new Geofence.Builder()
-                                    .setRequestId("1") // set the request ID of the geofence. This is a string to identify this geofence.
+                            mGeofenceList.set(markers.indexOf(marker), new Geofence.Builder()
+                                    .setRequestId(markers.indexOf(marker) + "") // set the request ID of the geofence. This is a string to identify this geofence.
                                     .setCircularRegion(marker.getPosition().latitude, marker.getPosition().longitude, 100) // lat, long, radius in meters
-                                    .setExpirationDuration(1000) // in milliseconds
+                                    .setExpirationDuration(Geofence.NEVER_EXPIRE) // in milliseconds
                                     .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
-                                    .build();
+                                    .build());
 
-                            mGeofenceList.set(markers.indexOf(marker), newGeofence);
-
-                            LocationServices.GeofencingApi.addGeofences(mGoogleApiClient, getGeofencingRequest(), getGeofencePendingIntent());
+                            addGeofences();
                         }
                     });
                 }
@@ -182,27 +178,33 @@ public class GeofenceDetailFragment extends Fragment implements GoogleApiClient.
                 catch (SecurityException se) {
                     System.out.println("Please grant permission for location services!");
                 }
+
                 addMarker(mLastLocation);
+
                 mGeofenceList.add(new Geofence.Builder()
-                        .setRequestId("1") // set the request ID of the geofence. This is a string to identify this geofence.
-                        //.setCircularRegion(-37.635991, 144.930133, 100) // lat, long, radius in meters
-                        .setCircularRegion(-37.636704, 144.930706, 100) // lat, long, radius in meters
-                        .setExpirationDuration(1000) // in milliseconds
+                        .setRequestId(mIdCount + "") // set the request ID of the geofence. This is a string to identify this geofence.
+                        .setCircularRegion(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 100) // lat, long, radius in meters
+                        .setExpirationDuration(Geofence.NEVER_EXPIRE) // in milliseconds
                         .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
                         .build());
 
-                try {
-                    LocationServices.GeofencingApi.addGeofences(mGoogleApiClient, getGeofencingRequest(), getGeofencePendingIntent());
-                }
-                catch (SecurityException se) {
-                    System.out.println("Please grant permission for location services!");
-                }
+                mIdCount++;
+                addGeofences();
 
-                Toast.makeText(getActivity(), "Press and hold marker to change gefeonce location", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Tap and hold marker to change hot spot location!", Toast.LENGTH_SHORT).show();
             }
         });
 
         return rootView;
+    }
+
+    public void addGeofences() {
+        try {
+            LocationServices.GeofencingApi.addGeofences(mGoogleApiClient, getGeofencingRequest(), getGeofencePendingIntent());
+        }
+        catch (SecurityException se) {
+            System.out.println("Please grant permission for location services!");
+        }
     }
 
     public void addMarker(Location newMarkerLocation) {
@@ -226,7 +228,6 @@ public class GeofenceDetailFragment extends Fragment implements GoogleApiClient.
             co.radius(100);
             Circle circle = mMap.addCircle(co);
             circles.add(circle);
-
 
             // move focus to where the marker is
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 17)); // 10 is zoom level
@@ -254,20 +255,18 @@ public class GeofenceDetailFragment extends Fragment implements GoogleApiClient.
     @Override
     public void onResult(@NonNull Status status) {
         if(status.isSuccess()) {
-            System.out.println("yay");
+            System.out.println("Successfully added Geofence");
         }
         else {
-            System.out.println("no");
+            System.out.println("Error adding Geofence!");
         }
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        System.out.println("yo");
+        System.out.println("Connected to Google Play Services");
     }
 
     @Override
-    public void onConnectionSuspended(int i) {
-
-    }
+    public void onConnectionSuspended(int i) {}
 }

@@ -32,7 +32,7 @@ import java.util.ArrayList;
  * in two-pane mode (on tablets) or a {@link ItemDetailActivity}
  * on handsets.
  */
-public class ItemDetailMapFragment extends Fragment implements ConnectionCallbacks {
+public class LocationDetailFragment extends Fragment implements ConnectionCallbacks {
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
@@ -55,7 +55,7 @@ public class ItemDetailMapFragment extends Fragment implements ConnectionCallbac
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public ItemDetailMapFragment() {
+    public LocationDetailFragment() {
 
     }
 
@@ -147,7 +147,7 @@ public class ItemDetailMapFragment extends Fragment implements ConnectionCallbac
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_locations_detail, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_location_detail, container, false);
 
         // Show the dummy content as text in a TextView.
      //   if (mItem != null) {
