@@ -1,12 +1,14 @@
 package com.sdstf.info_go;
 
 import android.Manifest;
+import android.app.Fragment;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 
+import com.sdstf.info_go.dummy.DummyContent;
 
 /**
  * An activity representing a list of Items. This activity
@@ -46,9 +48,7 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
 
             // In two-pane mode, list items should be given the
             // 'activated' state when touched.
-            ((ItemListFragment) getFragmentManager()
-                    .findFragmentById(R.id.item_list))
-                    .setActivateOnItemClick(true);
+            ((ItemListFragment) getFragmentManager().findFragmentById(R.id.item_list)).setActivateOnItemClick(true);
         }
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -73,6 +73,13 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
             // fragment transaction.
+
+
+            DummyContent.DummyItem mItem = DummyContent.ITEM_MAP.get(id);
+            Fragment fragment = mItem.getFragment();
+
+            getFragmentManager().beginTransaction().replace(R.id.item_detail_container, fragment).commit();
+            /*
             Bundle arguments = new Bundle();
             arguments.putString(ItemDetailFragment.ARG_ITEM_ID, id);
             if (id.equals("1")) { // for option item 2, use a map fragment
@@ -90,6 +97,10 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
                 GeofenceDetailFragment geofenceFragment = new GeofenceDetailFragment();
                 getFragmentManager().beginTransaction().replace(R.id.item_detail_container, geofenceFragment).commit();
             }
+            else if(id.equals("10")) {
+                TrackingDetailFragment trackingFragment = new TrackingDetailFragment();
+                getFragmentManager().beginTransaction().replace(R.id.item_detail_container, trackingFragment).commit();
+            }
             else { // options other than 1
                 ItemDetailFragment fragment = new ItemDetailFragment();
                 fragment.setArguments(arguments);
@@ -97,8 +108,9 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
                         .replace(R.id.item_detail_container, fragment)
                         .commit();
             }
-
+            */
         } else {
+            /*
             if (id.equals("1")) { // for option item 2, use a map fragment
                 // In single-pane mode, simply start the detail activity
                 // for the selected item ID.
@@ -116,11 +128,21 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
                 geofenceDetailIntent.putExtra(LocationDetailFragment.ARG_ITEM_ID, id);
                 startActivity(geofenceDetailIntent);
             }
+            else if (id.equals("10")) {
+                Intent trackingDetailIntent = new Intent(this, TrackingDetailActivity.class);
+                trackingDetailIntent.putExtra(LocationDetailFragment.ARG_ITEM_ID, id);
+                startActivity(trackingDetailIntent);
+            }
             else { //options other than 1
                 Intent detailIntent = new Intent(this, ItemDetailActivity.class);
                 detailIntent.putExtra(ItemDetailFragment.ARG_ITEM_ID, id);
                 startActivity(detailIntent);
             }
+            */
+            Intent intent = new Intent(this, DetailActivity.class);
+            intent.putExtra("id", id);
+            intent.putExtra("item_id", id);
+            startActivity(intent);
         }
     }
 }

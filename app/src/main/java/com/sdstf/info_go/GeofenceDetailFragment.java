@@ -8,18 +8,17 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.Geofence;
-import com.google.android.gms.location.GeofencingApi;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -35,7 +34,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.sdstf.info_go.dummy.DummyContent;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 /**
  * A fragment representing a single Item detail screen.
@@ -59,6 +58,7 @@ public class GeofenceDetailFragment extends Fragment implements GoogleApiClient.
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
+    private static View rootView;
 
     private GoogleApiClient mGoogleApiClient;
 
@@ -100,61 +100,58 @@ public class GeofenceDetailFragment extends Fragment implements GoogleApiClient.
     @Override
     public void onResume() {
         super.onResume();
-        setUpMapIfNeeded();
+        setUpMap();
     }
 
-    private void setUpMapIfNeeded() {
-        // Do a null check to confirm that we have not already instantiated the map.
-        if (mMap == null) {
-            // Try to obtain the map
-            // note that because this class itself is a fragment,
-            // to find the map fragment inside this fragment,
-            // though it has unique id (i.e., R.id.map), you need to use the child's fragment manager.
-            // Using getFragmentManager() instead of getChildFragmentManager() below will not work
-            myMapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+    private void setUpMap() {
+        // Try to obtain the map
+        // note that because this class itself is a fragment,
+        // to find the map fragment inside this fragment,
+        // though it has unique id (i.e., R.id.map), you need to use the child's fragment manager.
+        // Using getFragmentManager() instead of getChildFragmentManager() below will not work
+        myMapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.GeofenceMap);
 
-            myMapFragment.getMapAsync(new OnMapReadyCallback() {
-                @Override
-                public void onMapReady(GoogleMap googleMap) {
-                    mMap = googleMap;
-                    try {
-                        mMap.setMyLocationEnabled(true); // Enable the map's location dot
-                    }
-                    catch (SecurityException se) {
-                        System.out.println("Please grant permission for location services!");
-                    }
-
-                    mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
-                        @Override
-                        public void onMarkerDragStart(Marker marker) {}
-
-                        @Override
-                        public void onMarkerDrag(Marker marker) {
-                            circles.get(markers.indexOf(marker)).setCenter(marker.getPosition());
-                        }
-
-                        @Override
-                        public void onMarkerDragEnd(Marker marker) {
-                            LocationServices.GeofencingApi.removeGeofences(mGoogleApiClient, getGeofencePendingIntent());
-
-                            mGeofenceList.set(markers.indexOf(marker), new Geofence.Builder()
-                                    .setRequestId(markers.indexOf(marker) + "") // set the request ID of the geofence. This is a string to identify this geofence.
-                                    .setCircularRegion(marker.getPosition().latitude, marker.getPosition().longitude, 100) // lat, long, radius in meters
-                                    .setExpirationDuration(Geofence.NEVER_EXPIRE) // in milliseconds
-                                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
-                                    .build());
-
-                            addGeofences();
-                        }
-                    });
+        myMapFragment.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                mMap = googleMap;
+                try {
+                    mMap.setMyLocationEnabled(true); // Enable the map's location dot
                 }
-            });
-        }
+                catch (SecurityException se) {
+                    System.out.println("Please grant permission for location services!");
+                }
+
+                mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+                    @Override
+                    public void onMarkerDragStart(Marker marker) {}
+
+                    @Override
+                    public void onMarkerDrag(Marker marker) {
+                        circles.get(markers.indexOf(marker)).setCenter(marker.getPosition());
+                    }
+
+                    @Override
+                    public void onMarkerDragEnd(Marker marker) {
+                        LocationServices.GeofencingApi.removeGeofences(mGoogleApiClient, getGeofencePendingIntent());
+
+                        mGeofenceList.set(markers.indexOf(marker), new Geofence.Builder()
+                                .setRequestId(markers.indexOf(marker) + "") // This is a string to identify a geofence.
+                                .setCircularRegion(marker.getPosition().latitude, marker.getPosition().longitude, 100) // lat, long, radius in meters
+                                .setExpirationDuration(Geofence.NEVER_EXPIRE) // in milliseconds
+                                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+                                .build());
+
+                        addGeofences();
+                    }
+                });
+            }
+        });
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_geofence_detail, container, false);
+        rootView = inflater.inflate(R.layout.fragment_geofence_detail, container, false);
 
         mGeofencePendingIntent = null;
         mGeofenceList = new ArrayList<>();
@@ -197,6 +194,15 @@ public class GeofenceDetailFragment extends Fragment implements GoogleApiClient.
 
         return rootView;
     }
+
+    /*
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        MapFragment mf = (MapFragment) getFragmentManager().findFragmentById(R.id.GeofenceMap);
+        getFragmentManager().beginTransaction().remove(mf).commit();
+    }
+    */
 
     public void addGeofences() {
         try {

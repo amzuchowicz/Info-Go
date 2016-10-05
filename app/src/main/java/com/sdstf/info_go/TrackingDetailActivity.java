@@ -21,7 +21,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
  * This activity is mostly just a 'shell' activity containing nothing
  * more than a {@link ItemDetailFragment}.
  */
-public class LocationDetailActivity extends AppCompatActivity   {
+public class TrackingDetailActivity extends AppCompatActivity   {
 
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
@@ -48,9 +48,9 @@ public class LocationDetailActivity extends AppCompatActivity   {
             // Create the detail fragment and add it to the activity using a fragment transaction.
             Bundle arguments = new Bundle();
             arguments.putString(LocationDetailFragment.ARG_ITEM_ID, getIntent().getStringExtra(LocationDetailFragment.ARG_ITEM_ID));
-            LocationDetailFragment mapfragment = new LocationDetailFragment();
-            mapfragment.setArguments(arguments);
-            getFragmentManager().beginTransaction().add(R.id.item_detail_container, mapfragment).commit();
+            TrackingDetailFragment trackingfragment = new TrackingDetailFragment();
+            trackingfragment.setArguments(arguments);
+            getFragmentManager().beginTransaction().add(R.id.item_detail_container, trackingfragment).commit();
        }
     }
 
@@ -73,34 +73,5 @@ public class LocationDetailActivity extends AppCompatActivity   {
     @Override
     protected void onResume() {
         super.onResume();
-        //setUpMapIfNeeded();
-    }
-
-    private void setUpMapIfNeeded() {
-        // Do a null check to confirm that we have not already instantiated the map.
-        if (mMap == null) {
-            // Try to obtain the map
-
-            myMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.GeofenceMap);
-            myMapFragment.getMapAsync(new OnMapReadyCallback() {
-                @Override
-                public void onMapReady(GoogleMap googleMap) {
-                    // Map is ready! Add stuff to it like markers.
-                    mMap = googleMap;
-                    addMyMarker(mMap);
-                }
-            });
-
-        }
-    }
-    public void addMyMarker(GoogleMap map) {
-        MarkerOptions mo = new MarkerOptions();
-        LatLng loc = new LatLng(-37.0, 147.0);
-        mo.position(loc);
-        mo.title("Marker");
-        map.addMarker(mo);
-
-        // move focus to where the marker is
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 10)); // 10 is zoom level
     }
 }

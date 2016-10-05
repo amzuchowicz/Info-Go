@@ -1,9 +1,16 @@
 package com.sdstf.info_go;
 
 import android.app.Fragment;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,9 +18,14 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.DetectedActivity;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.sdstf.info_go.dummy.DummyContent;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -21,9 +33,8 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-
 import com.google.android.gms.common.api.GoogleApiClient.*;
-
+import com.google.android.gms.location.LocationListener;
 import java.util.ArrayList;
 
 /**
@@ -32,17 +43,27 @@ import java.util.ArrayList;
  * in two-pane mode (on tablets) or a {@link ItemDetailActivity}
  * on handsets.
  */
-public class LocationDetailFragment extends Fragment implements ConnectionCallbacks {
+public class TrackingDetailFragment extends Fragment implements ConnectionCallbacks, LocationListener {
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
      */
-    //private static View rootView;
+    private static View rootView;
+
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private MapFragment myMapFragment;
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
+    private LocationRequest mLocationRequest;
+
+    private PolylineOptions po;
+    private Polyline polyline;
     private ArrayList<Marker> markers = new ArrayList<>();
+    private ArrayList<LatLng> points;
+
+    private boolean tracking;
+
+    private ActivityDetectionBroadcastReceiver mBroadcastReceiver;
 
     public static final String ARG_ITEM_ID = "item_id";
 
@@ -55,7 +76,7 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public LocationDetailFragment() {
+    public TrackingDetailFragment() {
 
     }
 
@@ -73,24 +94,24 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
     public void onResume() {
         super.onResume();
         setUpMap();
-        System.out.println("ON RESUME!!!!!");
+        LocalBroadcastManager.getInstance(getActivity())
+                .registerReceiver(mBroadcastReceiver, new IntentFilter("com.sdstf.info_go.BROADCAST_ACTION"));
+    }
+
+    @Override
+    public void onPause() {
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mBroadcastReceiver);
+        super.onPause();
     }
 
     private void setUpMap() {
-        // Do a null check to confirm that we have not already instantiated the map.
-        //if (mMap == null) {
         // Try to obtain the map
         // note that because this class itself is a fragment,
         // to find the map fragment inside this fragment,
         // though it has unique id (i.e., R.id.map), you need to use the child's fragment manager.
         // Using getFragmentManager() instead of getChildFragmentManager() below will not work
-        if (getFragmentManager().findFragmentById(R.id.LocationMap) != null) {
-            // Our map fragment is inside an activity (pre 5.0)
-            //myMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.LocationMap);
-        } else {
-            // Our map fragment is inside a parent fragment (tablet) (post 5.0)
-            myMapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.LocationMap);
-        }
+        myMapFragment = (MapFragment) getChildFragmentManager().findFragmentById(R.id.TrackingMap);
+
 
         myMapFragment.getMapAsync(new OnMapReadyCallback() {
             @Override
@@ -98,13 +119,12 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
                 mMap = googleMap;
                 try {
                     mMap.setMyLocationEnabled(true); // Enable the map's location dot
-                } catch (SecurityException se) {
+                }
+                catch (SecurityException se) {
                     System.out.println("Please grant permission for location services!");
                 }
             }
         });
-        System.out.println("MAP NULL");
-
     }
 
     public void addMarker(Location newMarkerLocation) {
@@ -117,7 +137,6 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
             mo.title("Last Recorded Location");
 
             Marker newMarker = mMap.addMarker(mo);
-            System.out.println("Added marker");
             markers.add(newMarker);
             updateOlderMarker();
 
@@ -149,41 +168,57 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_location_detail, container, false);
+        rootView = inflater.inflate(R.layout.fragment_tracking_detail, container, false);
 
         // Show the dummy content as text in a TextView.
      //   if (mItem != null) {
        //     ((TextView) rootView.findViewById(R.id.item_detail)).setText(mItem.content);
        // }
+        mBroadcastReceiver = new ActivityDetectionBroadcastReceiver();
 
         if(mGoogleApiClient == null) {
             mGoogleApiClient = new Builder(getActivity())
                     .addConnectionCallbacks(this)
                     .addApi(LocationServices.API)
+                    .addApi(ActivityRecognition.API)
                     .build();
         }
 
-        Button btnRecordLocation = (Button) rootView.findViewById(R.id.btnRecordLocation);
+        tracking = false;
+        final Button btnRecordLocation = (Button) rootView.findViewById(R.id.btnRecordLocation);
         btnRecordLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-                }
-                catch (SecurityException se) {
-                    System.out.println("Please grant permission for location services!");
-                }
+                if(!tracking) {
+                    mLocationRequest = new LocationRequest();
+                    mLocationRequest.setInterval(5000); // polling interval
+                    mLocationRequest.setFastestInterval(2500); // if another app requests faster then this is fastest rate
+                    mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+                    mLocationRequest.setSmallestDisplacement(1); // default 0. smallest distance in m user must move between loc updates
 
-                if(mLastLocation != null) {
-                    // We have connected as last location was retrieved
-                    System.out.println(mLastLocation);
-                    addMarker(mLastLocation);
+                    try {
+                        LocationServices.FusedLocationApi
+                                .requestLocationUpdates(mGoogleApiClient, mLocationRequest, TrackingDetailFragment.this);
+                    } catch (SecurityException se) {
+                        System.out.println("Please grant permission for location services!");
+                    }
+
+                    ActivityRecognition.ActivityRecognitionApi
+                            .requestActivityUpdates(mGoogleApiClient, 0, getActivityDetectionPendingIntent());
+
+                    points = new ArrayList<>();
+
+                    btnRecordLocation.setText("Stop Tracking");
+                    tracking = true;
                 }
                 else {
-                    Toast.makeText(getActivity(), "Unable to retrieve last known location!", Toast.LENGTH_LONG).show();
+                    LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, TrackingDetailFragment.this);
+                    btnRecordLocation.setText("Start Tracking");
+                    tracking = false;
                 }
             }
         });
+
         return rootView;
     }
 
@@ -193,7 +228,7 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
         super.onDestroy();
         // Map fragment needs to be manually destroyed here for pre 5.0.
         // Otherwise causes duplicate fragment to be recreated with same id and crashes.
-        MapFragment mf = (MapFragment) getFragmentManager().findFragmentById(R.id.LocationMap);
+        MapFragment mf = (MapFragment) getFragmentManager().findFragmentById(R.id.TrackingMap);
         getFragmentManager().beginTransaction().remove(mf).commit();
     }
     */
@@ -208,5 +243,67 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
     @Override
     public void onConnectionSuspended(int i) {
 
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        points.add(new LatLng(location.getLatitude(), location.getLongitude()));
+        Toast.makeText(getActivity(), "Location Update", Toast.LENGTH_SHORT).show();
+
+        if(points.size() == 1) {
+            // First point. Need to init line with first point.
+            po = new PolylineOptions();
+            po.add(new LatLng(location.getLatitude(), location.getLongitude()));
+        }
+        else if(points.size() == 2) {
+            // Second point. A line can be added to map.
+            po.add(new LatLng(location.getLatitude(), location.getLongitude()));
+            polyline = mMap.addPolyline(po);
+        }
+        else {
+            polyline.setPoints(points);
+        }
+    }
+
+    private PendingIntent getActivityDetectionPendingIntent() {
+        Intent intent = new Intent(getActivity(), DetectedActivitiesIntentService.class);
+
+        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling
+        // requestActivityUpdates() and removeActivityUpdates().
+        return PendingIntent.getService(getActivity(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    public class ActivityDetectionBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ArrayList<DetectedActivity> updatedActivities = intent.getParcelableArrayListExtra("com.sdstf.info_go.ACTIVITY_EXTRA");
+            for (DetectedActivity da : updatedActivities) {
+                System.out.println(getActivityString(da.getType()) + " " + da.getConfidence());
+            }
+        }
+    }
+
+    public static String getActivityString(int detectedActivityType) {
+        switch(detectedActivityType) {
+            case DetectedActivity.IN_VEHICLE:
+                return "In Vehicle";
+            case DetectedActivity.ON_BICYCLE:
+                return "On Bicycle";
+            case DetectedActivity.ON_FOOT:
+                return "On Foot";
+            case DetectedActivity.RUNNING:
+                return "Running";
+            case DetectedActivity.STILL:
+                return "Still";
+            case DetectedActivity.TILTING:
+                return "Tilting";
+            case DetectedActivity.UNKNOWN:
+                return "Unknown";
+            case DetectedActivity.WALKING:
+                return "Walking";
+            default:
+                return "Unidentifiable Activity!";
+        }
     }
 }
