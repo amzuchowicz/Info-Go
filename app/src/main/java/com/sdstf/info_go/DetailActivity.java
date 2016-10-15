@@ -19,6 +19,7 @@ public class DetailActivity extends AppCompatActivity {
 
     private DummyContent.DummyItem mItem;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
