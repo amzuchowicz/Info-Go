@@ -22,7 +22,7 @@ public class WifiListActivity extends AppCompatActivity implements WifiListFragm
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_wifi_list);
+        setContentView(R.layout.fragment_wifi_detail);
 
         if (findViewById(R.id.item_detail_container) != null) {
             // The detail container view will be present only in the
@@ -33,7 +33,7 @@ public class WifiListActivity extends AppCompatActivity implements WifiListFragm
 
             // In two-pane mode, list items should be given the
             // 'activated' state when touched.
-            ((WifiListFragment) getFragmentManager().findFragmentById(R.id.wifi_list)).setActivateOnItemClick(true);
+            //((WifiListFragment) getFragmentManager().findFragmentById(R.id.wifi_list)).setActivateOnItemClick(true);
         }
     }
 

@@ -18,7 +18,7 @@ public class WifiDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_wifi_detail);
+        setContentView(R.layout.fragment_wifi_detail);
 
         String id = getIntent().getStringExtra("id");
         mItem = WifiContent.ITEM_MAP.get(id);
