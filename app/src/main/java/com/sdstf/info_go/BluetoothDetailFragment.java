@@ -51,7 +51,9 @@ public class BluetoothDetailFragment extends Fragment {
     private ArrayList<BluetoothDevice> mBluetoothDeviceList;
     private ArrayAdapter<BluetoothDevice> adapter;
     private ArrayAdapter adapter2;
-
+    private ArrayList<String> title = new ArrayList<>();
+    private ArrayList<String> results = new ArrayList<>();
+    private int count = 0;
     private final BroadcastReceiver bReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
