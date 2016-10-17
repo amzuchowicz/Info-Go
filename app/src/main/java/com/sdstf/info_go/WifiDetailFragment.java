@@ -5,6 +5,7 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -52,6 +53,7 @@ public class WifiDetailFragment extends Fragment {
     private ArrayList<String> title = new ArrayList<>();
     private ArrayList<String> results = new ArrayList<>();
     private int count = 0;
+    private DBWifiHelper wifidb;
     public WifiDetailFragment() {
     }
 
@@ -70,6 +72,11 @@ public class WifiDetailFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_wifi_detail, container, false);
 
@@ -78,7 +85,29 @@ public class WifiDetailFragment extends Fragment {
 
         }
         final ListView list = (ListView) rootView.findViewById(R.id.wifi_list2);
+        wifidb = new DBWifiHelper(getActivity());
+        //getData
+        //displaySavedData
+        getData();
+        adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, title);
+        list.setAdapter(adapter);
 
+        list.setOnItemClickListener( new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position,
+                                    long id) {
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+                System.out.println(position);
+                alertDialogBuilder.setMessage(results.get(position));
+                alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                    }
+                });
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+            }
+        });
         Button btnScanWifi = (Button) rootView.findViewById(R.id.btnScanWifi);
         btnScanWifi.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -86,22 +115,19 @@ public class WifiDetailFragment extends Fragment {
 
                 title.add("Scan "+count);
                 String res = "";
-                ArrayAdapter<String> adapter;
                 List<ScanResult> scanResults = wifi.getScanResults();
                 for(ScanResult sr : scanResults) {
                     res += "BSSID: " + sr.BSSID + ", SSID: " +sr.SSID + ", Frequency: " + sr.frequency + "\n";
-                    System.out.println(sr.BSSID);
-                    System.out.println(sr.SSID);
-                    System.out.println(sr.capabilities);
-                    System.out.println(sr.frequency);
-                    System.out.println(sr.level);
-                    System.out.println(sr.channelWidth);
-                    System.out.println(" ");
-                    results.add(res);
-                    count++;
                 }
-                adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, title);
-                list.setAdapter(adapter);
+                System.out.println(res);
+                System.out.println(" ");
+                //add to database
+                wifidb.insertWifi("Scan "+count, res);
+                results.add(res);
+                count++;
+                //adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, title);
+                adapter.notifyDataSetChanged();
+                /*list.setAdapter(adapter);
                 list.setOnItemClickListener( new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position,
@@ -117,10 +143,22 @@ public class WifiDetailFragment extends Fragment {
                         AlertDialog alertDialog = alertDialogBuilder.create();
                         alertDialog.show();
                     }
-                });
+                });*/
             }
         });
 
         return rootView;
+    }
+    public void getData(){
+        int numberOfRows = wifidb.numberOfRows();
+        System.out.println(numberOfRows);
+        Cursor res =  wifidb.getAll();
+        res.moveToFirst();
+        while(numberOfRows > count){
+            title.add(res.getString(res.getColumnIndex("title")));
+            results.add(res.getString(res.getColumnIndex("results")));
+            count++;
+            res.moveToNext();
+        }
     }
 }

@@ -163,7 +163,7 @@ public class PlaceDetailFragment extends Fragment implements GoogleApiClient.Con
                     }
                 }
                 System.out.println(""+savedPlace);
-                if(savedPlace) {
+                if(savedPlace && numberOfRows != 0) {
                     AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
                     alertDialogBuilder.setMessage("Do you want to load from cache?");
 
@@ -236,7 +236,7 @@ public class PlaceDetailFragment extends Fragment implements GoogleApiClient.Con
                                 list.setAdapter(adapter);
 
                                 placeLikelihoods.release();
-                               // savePlace(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+                                //savePlace(mLastLocation.getLatitude(), mLastLocation.getLongitude());
                             }
                         });
                     } else {
