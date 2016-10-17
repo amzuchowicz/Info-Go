@@ -97,9 +97,9 @@ public class WifiDetailFragment extends Fragment {
                     System.out.println(sr.level);
                     System.out.println(sr.channelWidth);
                     System.out.println(" ");
+                    results.add(res);
+                    count++;
                 }
-                results.add(res);
-                count++;
                 adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, title);
                 list.setAdapter(adapter);
                 list.setOnItemClickListener( new AdapterView.OnItemClickListener() {
