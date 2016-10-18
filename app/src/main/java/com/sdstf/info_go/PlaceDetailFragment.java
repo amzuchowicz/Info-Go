@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 
 import com.google.android.gms.common.ConnectionResult;
@@ -30,6 +31,8 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingRequest;
@@ -57,7 +60,7 @@ import static android.content.Context.LOCATION_SERVICE;
  * in two-pane mode (on tablets) or a {@link ItemDetailActivity}
  * on handsets.
  */
-public class PlaceDetailFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class PlaceDetailFragment extends Fragment implements ConnectionCallbacks, OnConnectionFailedListener {
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
@@ -82,19 +85,30 @@ public class PlaceDetailFragment extends Fragment implements GoogleApiClient.Con
 
     public PlaceDetailFragment() {
     }
-
+    @Override
     public void onStart() {
-        mGoogleApiClient.connect();
         super.onStart();
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.connect();
+        }
     }
 
+    @Override
     public void onStop() {
-        mGoogleApiClient.disconnect();
         super.onStop();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
     }
     @Override
-    public void onConnected(Bundle connectionHint) {
-
+    public void onPause() {
+        super.onPause();
+        // Stop location updates.
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Resuming the periodic location updates.
     }
 
     @Override
@@ -122,16 +136,14 @@ public class PlaceDetailFragment extends Fragment implements GoogleApiClient.Con
 
         final ListView list = (ListView) rootView.findViewById(R.id.list);
 
-        if(mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient
-                    .Builder(getActivity())
+        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
+                    .addApi(Places.PLACE_DETECTION_API )
                     .addApi(LocationServices.API)
-                    //.addApi(Places.GEO_DATA_API)
-                    .addApi(Places.PLACE_DETECTION_API)
-                    //.enableAutoManage(getActivity(), this)
                     .build();
+        if(mGoogleApiClient!= null){
+            mGoogleApiClient.connect();
         }
 
         Button btnPlaceInfo = (Button) rootView.findViewById(R.id.btnPlaceInfo);
@@ -144,8 +156,8 @@ public class PlaceDetailFragment extends Fragment implements GoogleApiClient.Con
                 try {
                     mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
                 }
-                catch (SecurityException se) {
-                    System.out.println("Please grant permission for location services!");
+                catch (SecurityException se){
+
                 }
                 boolean savedPlace = true;
                 if (mLastLocation != null) {
@@ -201,7 +213,7 @@ public class PlaceDetailFragment extends Fragment implements GoogleApiClient.Con
 
                                         placeLikelihoods.release();
                                         //TO DO: save location
-                                       // savePlace(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+                                        savePlace(mLastLocation.getLatitude(), mLastLocation.getLongitude());
                                     }
                                 });
                             } else {
@@ -236,7 +248,7 @@ public class PlaceDetailFragment extends Fragment implements GoogleApiClient.Con
                                 list.setAdapter(adapter);
 
                                 placeLikelihoods.release();
-                                //savePlace(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+                                savePlace(mLastLocation.getLatitude(), mLastLocation.getLongitude());
                             }
                         });
                     } else {
@@ -252,10 +264,21 @@ public class PlaceDetailFragment extends Fragment implements GoogleApiClient.Con
     }
 
     @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {}
+    public void onConnectionFailed(ConnectionResult arg0) {
+        Toast.makeText(getActivity(), "Failed to connect...", Toast.LENGTH_SHORT).show();
 
+    }
     @Override
-    public void onConnectionSuspended(int i) {}
+    public void onConnected(Bundle arg0) {
+        //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        Toast.makeText(getActivity(), "Connected to Google Play Services.", Toast.LENGTH_SHORT).show();
+
+    }
+    @Override
+    public void onConnectionSuspended(int arg0) {
+        Toast.makeText(getActivity(), "Connection suspended...", Toast.LENGTH_SHORT).show();
+
+    }
     //helper methods
     public void savePlace(double lat, double lon){
         placedb.insertPlace(lat,lon,convertListToString(mPlaceArray));
@@ -279,7 +302,7 @@ public class PlaceDetailFragment extends Fragment implements GoogleApiClient.Con
 
         // Remove last separator
         int lastIndex = stringBuffer.lastIndexOf(LIST_SEPARATOR);
-        stringBuffer.delete(lastIndex, lastIndex + LIST_SEPARATOR.length() + 1);
+        //stringBuffer.delete(lastIndex, lastIndex + LIST_SEPARATOR.length());
 
         return stringBuffer.toString();
     }

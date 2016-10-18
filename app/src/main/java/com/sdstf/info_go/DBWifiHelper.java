@@ -21,6 +21,11 @@ public class DBWifiHelper extends SQLiteOpenHelper {
     private static final String KEY_ID = "id";
     private static final String KEY_TITLE = "title";
     private static final String KEY_RESULTS = "results";
+    private static final String KEY_LATITUDE = "latitude";
+    private static final String KEY_LONGITUDE = "longitude";
+    private static final String KEY_TIMESTAMP = "timestamp";
+
+
     public DBWifiHelper(Context context){
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
