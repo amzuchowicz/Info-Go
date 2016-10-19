@@ -157,7 +157,7 @@ public class BluetoothDetailFragment extends Fragment implements ConnectionCallb
         bluetoothdb = new DBBluetoothHelper(getActivity());
         final ListView list = (ListView) rootView.findViewById(R.id.bluetooth_list);
         //bluetoothdb.deleteBluetooth(1);
-        //bluetoothdb.deleteBluetooth(2);
+
 
         getData();
         adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, title);
