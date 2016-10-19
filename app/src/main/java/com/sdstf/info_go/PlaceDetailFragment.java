@@ -78,28 +78,15 @@ public class PlaceDetailFragment extends Fragment implements ConnectionCallbacks
      */
 
     private GoogleApiClient mGoogleApiClient;
+    private Location mLastLocation;
     private ArrayList<String> mPlaceArray = new ArrayList<>();
     private ArrayAdapter<String> adapter;
     private DBPlaceHelper placedb;
-    private Location mLastLocation;
 
+    int index = 0;
     public PlaceDetailFragment() {
     }
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.connect();
-        }
-    }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (mGoogleApiClient.isConnected()) {
-            mGoogleApiClient.disconnect();
-        }
-    }
     @Override
     public void onPause() {
         super.onPause();
@@ -144,6 +131,12 @@ public class PlaceDetailFragment extends Fragment implements ConnectionCallbacks
                     .build();
         if(mGoogleApiClient!= null){
             mGoogleApiClient.connect();
+            try {
+                mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            }
+            catch (SecurityException se){
+
+            }
         }
 
         Button btnPlaceInfo = (Button) rootView.findViewById(R.id.btnPlaceInfo);
@@ -159,7 +152,7 @@ public class PlaceDetailFragment extends Fragment implements ConnectionCallbacks
                 catch (SecurityException se){
 
                 }
-                boolean savedPlace = true;
+                boolean savedPlace = false;
                 if (mLastLocation != null) {
                     double latitude =  mLastLocation.getLatitude();
                     double longitude = mLastLocation.getLongitude();
@@ -169,8 +162,11 @@ public class PlaceDetailFragment extends Fragment implements ConnectionCallbacks
                         res.moveToFirst();
                         double storedlat = res.getDouble(res.getColumnIndex("latitude"));
                         double storedlong = res.getDouble(res.getColumnIndex("latitude"));
-                        if(distance(latitude,longitude,storedlat,storedlong)< 0){
+                        double distance = distance(latitude,longitude,storedlat,storedlong);
+                        System.out.println(distance);
+                        if(distance > 0){
                             savedPlace = true;
+                            index = i;
                         }
                     }
                 }
@@ -182,7 +178,7 @@ public class PlaceDetailFragment extends Fragment implements ConnectionCallbacks
                     alertDialogBuilder.setPositiveButton("yes", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface arg0, int arg1) {
-                            getPlace(1);
+                            getPlace(index);
                             adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, mPlaceArray);
                             list.setAdapter(adapter);
                         }
@@ -212,7 +208,11 @@ public class PlaceDetailFragment extends Fragment implements ConnectionCallbacks
                                         list.setAdapter(adapter);
 
                                         placeLikelihoods.release();
-                                        //TO DO: save location
+                                        try {
+                                            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                                        }
+                                        catch (SecurityException se){}
+
                                         savePlace(mLastLocation.getLatitude(), mLastLocation.getLongitude());
                                     }
                                 });
@@ -248,6 +248,12 @@ public class PlaceDetailFragment extends Fragment implements ConnectionCallbacks
                                 list.setAdapter(adapter);
 
                                 placeLikelihoods.release();
+                                try {
+                                    mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                                }
+                                catch (SecurityException se){
+
+                                }
                                 savePlace(mLastLocation.getLatitude(), mLastLocation.getLongitude());
                             }
                         });
@@ -262,7 +268,21 @@ public class PlaceDetailFragment extends Fragment implements ConnectionCallbacks
 
         return rootView;
     }
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.connect();
+        }
+    }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
     @Override
     public void onConnectionFailed(ConnectionResult arg0) {
         Toast.makeText(getActivity(), "Failed to connect...", Toast.LENGTH_SHORT).show();
@@ -271,8 +291,7 @@ public class PlaceDetailFragment extends Fragment implements ConnectionCallbacks
     @Override
     public void onConnected(Bundle arg0) {
         //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        Toast.makeText(getActivity(), "Connected to Google Play Services.", Toast.LENGTH_SHORT).show();
-
+        //Toast.makeText(getActivity(), "Connected to Google Play Services.", Toast.LENGTH_SHORT).show();
     }
     @Override
     public void onConnectionSuspended(int arg0) {
@@ -286,6 +305,7 @@ public class PlaceDetailFragment extends Fragment implements ConnectionCallbacks
     public void getPlace(int id){
         Cursor res = placedb.getData(id);
         res.moveToFirst();
+        mPlaceArray.clear();
         String placeArray = res.getString(res.getColumnIndex("placeArray"));
         List<String> array = convertStringToList(placeArray);
         for(String place: array){

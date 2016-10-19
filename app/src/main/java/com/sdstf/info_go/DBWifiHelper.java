@@ -15,7 +15,7 @@ import java.util.ArrayList;
 
 public class DBWifiHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
-    private static final String DATABASE_NAME = "infogo";
+    private static final String DATABASE_NAME = "infogo2";
     private static final String TABLE_NAME= "wifiDetails";
 
     private static final String KEY_ID = "id";
@@ -35,7 +35,10 @@ public class DBWifiHelper extends SQLiteOpenHelper {
         String CREATE_PLACE_DETAIL_TABLE = "CREATE TABLE " + TABLE_NAME + "("
                 + KEY_ID + " INTEGER PRIMARY KEY,"
                 + KEY_TITLE + " TEXT,"
-                + KEY_RESULTS + " TEXT " + ")";
+                + KEY_RESULTS + " TEXT, "
+                + KEY_LATITUDE + " DOUBLE, "
+                + KEY_LONGITUDE + " DOUBLE, "
+                + KEY_TIMESTAMP + " TEXT " + ")";
         db.execSQL(CREATE_PLACE_DETAIL_TABLE);
     }
 
@@ -44,11 +47,14 @@ public class DBWifiHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
         onCreate(db);
     }
-    public boolean insertWifi(String title, String results){
+    public boolean insertWifi(String title, String results, double latitude, double longitude, String timestamp){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(KEY_TITLE, title);
         contentValues.put(KEY_RESULTS , results);
+        contentValues.put(KEY_LATITUDE , latitude);
+        contentValues.put(KEY_LONGITUDE , longitude);
+        contentValues.put(KEY_TIMESTAMP , timestamp);
         db.insert(TABLE_NAME, null, contentValues);
         return true;
     }
@@ -69,12 +75,15 @@ public class DBWifiHelper extends SQLiteOpenHelper {
         int numRows = (int) DatabaseUtils.queryNumEntries(db, TABLE_NAME);
         return numRows;
     }
-    public boolean updateWifi(Integer id, String title, String results)
+    public boolean updateWifi(Integer id, String title, String results, double latitude, double longitude, String timestamp)
     {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(KEY_TITLE, title);
         contentValues.put(KEY_RESULTS, results);
+        contentValues.put(KEY_LATITUDE , latitude);
+        contentValues.put(KEY_LONGITUDE , longitude);
+        contentValues.put(KEY_TIMESTAMP , timestamp);
         db.update(TABLE_NAME, contentValues, "id = ? ", new String[] { Integer.toString(id) } );
         return true;
     }
@@ -98,7 +107,10 @@ public class DBWifiHelper extends SQLiteOpenHelper {
         while(res.isAfterLast() == false){
             array_list.add(res.getString(res.getColumnIndex(KEY_ID))+"\n"
                     + res.getString(res.getColumnIndex(KEY_TITLE))+"\n"
-                    + res.getString(res.getColumnIndex(KEY_RESULTS))+"\n");
+                    + res.getString(res.getColumnIndex(KEY_RESULTS))+"\n"
+                    + res.getString(res.getColumnIndex(KEY_LATITUDE))+"\n"
+                    + res.getString(res.getColumnIndex(KEY_LONGITUDE))+"\n"
+                    + res.getString(res.getColumnIndex(KEY_TIMESTAMP))+"\n");
             res.moveToNext();
         }
         return array_list;

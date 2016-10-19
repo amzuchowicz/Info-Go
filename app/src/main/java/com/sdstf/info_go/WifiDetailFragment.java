@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.location.Location;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -18,19 +19,27 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
 import com.google.android.gms.location.places.Places;
 import com.sdstf.info_go.dummy.DummyContent;
 import com.sdstf.info_go.dummy.WifiContent;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
-public class WifiDetailFragment extends Fragment {
+public class WifiDetailFragment extends Fragment implements ConnectionCallbacks, OnConnectionFailedListener {
 
     /**
      * The fragment argument representing the item ID that this fragment
@@ -54,6 +63,9 @@ public class WifiDetailFragment extends Fragment {
     private ArrayList<String> results = new ArrayList<>();
     private int count = 0;
     private DBWifiHelper wifidb;
+    private GoogleApiClient mGoogleApiClient;
+    private Location mLastLocation;
+
     public WifiDetailFragment() {
     }
 
@@ -79,16 +91,25 @@ public class WifiDetailFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_wifi_detail, container, false);
+        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        if(mGoogleApiClient!= null){
+            mGoogleApiClient.connect();
+            try {
+                mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            }
+            catch (SecurityException se){
 
-        // Show the dummy content as text in a TextView.
-        if (mItem != null) {
-
+            }
         }
         final ListView list = (ListView) rootView.findViewById(R.id.wifi_list2);
         wifidb = new DBWifiHelper(getActivity());
-        //getData
-        //displaySavedData
+
         getData();
+
         adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, title);
         list.setAdapter(adapter);
 
@@ -97,7 +118,8 @@ public class WifiDetailFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position,
                                     long id) {
                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-                System.out.println(position);
+                //System.out.println(results.get(position));
+
                 alertDialogBuilder.setMessage(results.get(position));
                 alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
@@ -117,33 +139,26 @@ public class WifiDetailFragment extends Fragment {
                 String res = "";
                 List<ScanResult> scanResults = wifi.getScanResults();
                 for(ScanResult sr : scanResults) {
-                    res += "BSSID: " + sr.BSSID + ", SSID: " +sr.SSID + ", Frequency: " + sr.frequency + "\n";
+                    res += "SSID: " + sr.SSID + ", BSSID: " +sr.BSSID + ", Level: " + sr.level + "dB \n";
                 }
-                System.out.println(res);
-                System.out.println(" ");
                 //add to database
-                wifidb.insertWifi("Scan "+count, res);
-                results.add(res);
+                try {mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);}
+                catch (SecurityException se){}
+                double latitude =  mLastLocation.getLatitude();
+                double longitude = mLastLocation.getLongitude();
+                //timestamp
+                Date anotherCurDate = new Date();
+                SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yy hh:mm a");
+                String timestamp = formatter.format(anotherCurDate);
+                wifidb.insertWifi("Scan "+count, res, latitude, longitude, timestamp);
+                //add to reslts
+                results.add("Latitude: " + latitude
+                        + ", Longitude: " + longitude
+                        + ", TimeStamp: " + timestamp
+                        + ", \nResults: \n" + res);
                 count++;
-                //adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, title);
                 adapter.notifyDataSetChanged();
-                /*list.setAdapter(adapter);
-                list.setOnItemClickListener( new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position,
-                                            long id) {
-                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
-                        System.out.println(position);
-                        alertDialogBuilder.setMessage(results.get(position));
-                        alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface arg0, int arg1) {
-                            }
-                        });
-                        AlertDialog alertDialog = alertDialogBuilder.create();
-                        alertDialog.show();
-                    }
-                });*/
+
             }
         });
 
@@ -151,14 +166,47 @@ public class WifiDetailFragment extends Fragment {
     }
     public void getData(){
         int numberOfRows = wifidb.numberOfRows();
-        System.out.println(numberOfRows);
+        //System.out.println(numberOfRows);
         Cursor res =  wifidb.getAll();
         res.moveToFirst();
         while(numberOfRows > count){
             title.add(res.getString(res.getColumnIndex("title")));
-            results.add(res.getString(res.getColumnIndex("results")));
+            results.add("Latitude: " + res.getString(res.getColumnIndex("latitude"))
+                    + ", Longitude: " + res.getString(res.getColumnIndex("longitude"))
+                    + ", TimeStamp: " + res.getString(res.getColumnIndex("timestamp"))
+                    + ",\nResults: \n" + res.getString(res.getColumnIndex("results")));
             count++;
             res.moveToNext();
         }
+    }
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.connect();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+    @Override
+    public void onConnectionFailed(ConnectionResult arg0) {
+        Toast.makeText(getActivity(), "Failed to connect...", Toast.LENGTH_SHORT).show();
+
+    }
+    @Override
+    public void onConnected(Bundle arg0) {
+        //mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        //Toast.makeText(getActivity(), "Connected to Google Play Services.", Toast.LENGTH_SHORT).show();
+    }
+    @Override
+    public void onConnectionSuspended(int arg0) {
+        Toast.makeText(getActivity(), "Connection suspended...", Toast.LENGTH_SHORT).show();
+
     }
 }
