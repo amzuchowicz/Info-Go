@@ -1,6 +1,8 @@
 package com.sdstf.info_go;
 
+import android.app.AlertDialog;
 import android.app.Fragment;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.location.Location;
@@ -12,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -125,22 +128,37 @@ public class PictureDetailFragment extends Fragment implements ConnectionCallbac
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            // text desc
             Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            final Bitmap imageBitmap = (Bitmap) extras.get("data");
 
-            System.out.println(mGoogleApiClient.isConnected());
-            addMarker(mLastLocation, imageBitmap);
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            final EditText textField = new EditText(getActivity());
+            builder.setTitle("Enter a description");
+            builder.setView(textField);
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    String description = textField.getText().toString();
+                    addMarker(mLastLocation, imageBitmap, description);
+
+                }
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+            builder.show();
         }
     }
 
-    public void addMarker(Location location, Bitmap imageBitmap) {
+    public void addMarker(Location location, Bitmap imageBitmap, String description) {
         MarkerOptions mo = new MarkerOptions();
         LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
         mo.position(loc);
         mo.icon(BitmapDescriptorFactory.fromBitmap(imageBitmap));
-        mo.title("Last Recorded Location");
-
+        mo.title(description);
         Marker newMarker = mMap.addMarker(mo);
 
         // move focus to where the marker is
