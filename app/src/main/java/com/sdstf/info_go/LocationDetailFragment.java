@@ -73,7 +73,6 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
     public void onResume() {
         super.onResume();
         setUpMap();
-        System.out.println("ON RESUME!!!!!");
     }
 
     private void setUpMap() {
@@ -103,8 +102,6 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
                 }
             }
         });
-        System.out.println("MAP NULL");
-
     }
 
     public void addMarker(Location newMarkerLocation) {
