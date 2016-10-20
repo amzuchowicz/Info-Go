@@ -14,7 +14,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
-import com.sdstf.info_go.dummy.DummyContent;
+import com.sdstf.info_go.content.ListContent;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -49,7 +49,7 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
     /**
      * The dummy content this fragment is presenting.
      */
-    private DummyContent.DummyItem mItem;
+    private ListContent.ListItem mItem;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -143,7 +143,7 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-        //   mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+        //   mItem = ListContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
        //}
     }
 

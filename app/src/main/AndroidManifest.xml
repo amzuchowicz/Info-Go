@@ -27,32 +27,13 @@ package="com.sdstf.info_go">
         android:parentActivityName=".ItemListActivity">
         <meta-data android:name="android.support.PARENT_ACTIVITY" android:value=".ItemListActivity" />
     </activity>
-    <activity android:name=".LocationDetailActivity" android:label="Record &amp; View Locations"
-        android:parentActivityName=".ItemListActivity">
-        <meta-data android:name="android.support.PARENT_ACTIVITY" android:value=".ItemListActivity" />
-    </activity>
-    <activity android:name=".PlaceDetailActivity" android:label="View Place Information"
-        android:parentActivityName=".ItemListActivity">
-        <meta-data android:name="android.support.PARENT_ACTIVITY" android:value=".ItemListActivity" />
-    </activity>
-    <activity android:name=".GeofenceDetailActivity" android:label="Geofencing Around Hot Spots"
-        android:parentActivityName=".ItemListActivity">
-        <meta-data android:name="android.support.PARENT_ACTIVITY" android:value=".ItemListActivity" />
-    </activity>
-    <activity android:name=".TrackingDetailActivity" android:label="Activity Recognition"
-        android:parentActivityName=".ItemListActivity" />
 
-    <service android:name=".GeofenceTransitionsIntentService" android:exported="false" />
-    <service android:name=".DetectedActivitiesIntentService" android:exported="false" />
+    <service android:name=".services.GeofenceTransitionsIntentService" android:exported="false" />
+    <service android:name=".services.DetectedActivitiesIntentService" android:exported="false" />
 
     <activity android:name=".DetailActivity" android:label="Detail Activity"
         android:parentActivityName=".ItemListActivity" />
 
-    <activity android:name=".WifiListActivity" android:label="Wifi List Activity"
-        android:parentActivityName=".ItemListActivity" />
-
-    <activity android:name=".WifiDetailActivity" android:label="Wifi Detail Activity"
-        android:parentActivityName=".WifiListActivity" />
 </application>
 
 </manifest>

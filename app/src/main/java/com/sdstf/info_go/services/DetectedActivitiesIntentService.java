@@ -1,4 +1,4 @@
-package com.sdstf.info_go;
+package com.sdstf.info_go.services;
 
 import android.app.IntentService;
 import android.content.Intent;

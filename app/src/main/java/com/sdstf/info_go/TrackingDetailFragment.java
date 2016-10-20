@@ -10,7 +10,6 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
-import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,7 +25,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.sdstf.info_go.dummy.DummyContent;
+import com.sdstf.info_go.content.ListContent;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -35,6 +34,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.common.api.GoogleApiClient.*;
 import com.google.android.gms.location.LocationListener;
+import com.sdstf.info_go.services.DetectedActivitiesIntentService;
+
 import java.util.ArrayList;
 
 /**
@@ -70,7 +71,7 @@ public class TrackingDetailFragment extends Fragment implements ConnectionCallba
     /**
      * The dummy content this fragment is presenting.
      */
-    private DummyContent.DummyItem mItem;
+    private ListContent.ListItem mItem;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -162,7 +163,7 @@ public class TrackingDetailFragment extends Fragment implements ConnectionCallba
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-        //   mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+        //   mItem = ListContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
        //}
     }
 

@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,10 +30,10 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.sdstf.info_go.dummy.DummyContent;
+import com.sdstf.info_go.content.ListContent;
+import com.sdstf.info_go.services.GeofenceTransitionsIntentService;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 /**
  * A fragment representing a single Item detail screen.
@@ -52,7 +51,7 @@ public class GeofenceDetailFragment extends Fragment implements GoogleApiClient.
     /**
      * The dummy content this fragment is presenting.
      */
-    private DummyContent.DummyItem mItem;
+    private ListContent.ListItem mItem;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -83,7 +82,7 @@ public class GeofenceDetailFragment extends Fragment implements GoogleApiClient.
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-            //mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+            //mItem = ListContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
         //}
     }
 

@@ -1,4 +1,4 @@
-package com.sdstf.info_go;
+package com.sdstf.info_go.helpers;
 
 import android.content.ContentValues;
 import android.content.Context;

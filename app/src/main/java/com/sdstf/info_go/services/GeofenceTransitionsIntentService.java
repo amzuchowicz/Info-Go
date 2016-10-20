@@ -1,4 +1,4 @@
-package com.sdstf.info_go;
+package com.sdstf.info_go.services;
 
 import android.app.IntentService;
 import android.app.Notification;
@@ -17,6 +17,8 @@ import android.util.Log;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
+import com.sdstf.info_go.ItemListActivity;
+import com.sdstf.info_go.R;
 
 import java.util.ArrayList;
 import java.util.List;

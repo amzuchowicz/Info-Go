@@ -1,13 +1,8 @@
-package com.sdstf.info_go.dummy;
+package com.sdstf.info_go.content;
 
 import android.app.Fragment;
 import android.os.Bundle;
 
-import com.sdstf.info_go.GeofenceDetailFragment;
-import com.sdstf.info_go.ItemDetailFragment;
-import com.sdstf.info_go.LocationDetailFragment;
-import com.sdstf.info_go.PlaceDetailFragment;
-import com.sdstf.info_go.TrackingDetailFragment;
 import com.sdstf.info_go.WifiDetailFragment;
 
 import java.util.ArrayList;
