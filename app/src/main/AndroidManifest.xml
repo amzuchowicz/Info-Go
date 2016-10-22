@@ -35,6 +35,16 @@ package="com.sdstf.info_go">
     <activity android:name=".DetailActivity" android:label="Detail Activity"
         android:parentActivityName=".ItemListActivity" />
 
+    <provider
+        android:name="android.support.v4.content.FileProvider"
+        android:authorities="com.sdstf.info_go.fileprovider"
+        android:exported="false"
+        android:grantUriPermissions="true">
+        <meta-data
+            android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/file_paths"></meta-data>
+    </provider>
+
 </application>
 
 </manifest>

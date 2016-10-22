@@ -135,22 +135,26 @@ public class PlaceDetailFragment extends Fragment implements ConnectionCallbacks
                 if (mLastLocation != null) {
                     double latitude =  mLastLocation.getLatitude();
                     double longitude = mLastLocation.getLongitude();
+
                     for(int i = 0; i < numberOfRows; i++){
                         //TO DO: check if there is a close element in array
                         Cursor res = placedb.getData(i);
                         res.moveToFirst();
                         double storedlat = res.getDouble(res.getColumnIndex("latitude"));
-                        double storedlong = res.getDouble(res.getColumnIndex("latitude"));
-                        double distance = distance(latitude,longitude,storedlat,storedlong);
-                        System.out.println(distance);
-                        if(distance > 0){
+                        double storedlong = res.getDouble(res.getColumnIndex("longitude"));
+                        float distance = distance(latitude,longitude,storedlat,storedlong);
+                        System.out.println(latitude + " " + longitude + " " + storedlat+" " + storedlong + " " + distance);
+                        if(distance < 10) {
                             savedPlace = true;
                             index = i;
                         }
                     }
                 }
-                System.out.println(""+savedPlace);
-                if(savedPlace && numberOfRows != 0) {
+                else{
+                    System.out.println("Location is null!");
+                }
+                //System.out.println(""+savedPlace);
+                if(savedPlace) {
                     AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
                     alertDialogBuilder.setMessage("Do you want to load from cache?");
 
@@ -206,7 +210,7 @@ public class PlaceDetailFragment extends Fragment implements ConnectionCallbacks
                     alertDialog.show();
                 }
                 else {
-                    System.out.print("new");
+                    //System.out.print("new");
                     PendingResult<PlaceLikelihoodBuffer> currentPlace = null;
                     try {
                         currentPlace = Places.PlaceDetectionApi.getCurrentPlace(mGoogleApiClient, null);
@@ -243,7 +247,7 @@ public class PlaceDetailFragment extends Fragment implements ConnectionCallbacks
             }
         });
 
-        btnPlaceInfo.callOnClick();
+        //btnPlaceInfo.callOnClick();
 
         return rootView;
     }
@@ -309,16 +313,14 @@ public class PlaceDetailFragment extends Fragment implements ConnectionCallbacks
     public static List<String> convertStringToList(String str) {
         return Arrays.asList(str.split(LIST_SEPARATOR));
     }
-    public double distance(double lat1, double lng1, double lat2,double lng2) {
-        double earthRadius = 6371000; //meters
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLng = Math.toRadians(lng2 - lng1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                        Math.sin(dLng / 2) * Math.sin(dLng / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double dist = (earthRadius * c);
-        System.out.println(dist);
+    public float distance(double lat1, double lng1, double lat2,double lng2) {
+        Location loc1 = new Location("new");
+        loc1.setLatitude(lat1);
+        loc1.setLongitude(lng1);
+        Location loc2 = new Location("new");
+        loc2.setLatitude(lat2);
+        loc2.setLongitude(lng2);
+        float dist = loc1.distanceTo(loc2);
         return dist;
     }
 
