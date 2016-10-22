@@ -91,7 +91,7 @@ public class ItemListActivity extends AppCompatActivity implements ItemListFragm
             getFragmentManager().beginTransaction().replace(R.id.item_detail_container, fragment).commit();
 
         } else {
-            Intent intent = new Intent(this, DetailActivity.class);
+            Intent intent = new Intent(this, ItemDetailActivity.class);
             intent.putExtra("id", id);
             intent.putExtra("item_id", id);
             startActivity(intent);

@@ -1,6 +1,8 @@
 package com.sdstf.info_go;
 
 import android.app.Fragment;
+import android.database.Cursor;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -13,6 +15,8 @@ import android.widget.Toast;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.sdstf.info_go.content.ListContent;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -23,6 +27,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import com.google.android.gms.common.api.GoogleApiClient.*;
+import com.sdstf.info_go.helpers.DBLocationHelper;
 
 import java.util.ArrayList;
 
@@ -43,6 +48,11 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
     private ArrayList<Marker> markers = new ArrayList<>();
+    private Button btnRecordLocation;
+    private boolean addGeofence = false;
+    private Marker selectedMarker;
+
+    private DBLocationHelper locationDB;
 
     public static final String ARG_ITEM_ID = "item_id";
 
@@ -100,6 +110,36 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
                 } catch (SecurityException se) {
                     System.out.println("Please grant permission for location services!");
                 }
+                int numberOfRows = locationDB.numberOfRows();
+                if(numberOfRows > 0) {
+                    Cursor res = locationDB.getAll();
+                    res.moveToFirst();
+                    while (numberOfRows > 0) {
+                        Location loc = new Location("");
+                        loc.setLatitude(res.getDouble(res.getColumnIndex("latitude")));
+                        loc.setLongitude(res.getDouble(res.getColumnIndex("longitude")));
+                        System.out.println(res.getDouble(res.getColumnIndex("latitude")) + " "+ res.getDouble(res.getColumnIndex("longitude")));
+                        addMarker(loc);
+                        res.moveToNext();
+                        numberOfRows--;
+                    }
+                }
+                mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                    @Override
+                    public boolean onMarkerClick(Marker marker) {
+                        selectedMarker = marker;
+                        addGeofence = true;
+                        btnRecordLocation.setText("Mark Location as Hot");
+                        return false;
+                    }
+                });
+                mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                    @Override
+                    public void onMapClick(LatLng latLng) {
+                        addGeofence = false;
+                        btnRecordLocation.setText("Record Current Location");
+                    }
+                });
             }
         });
     }
@@ -114,7 +154,6 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
             mo.title("Last Recorded Location");
 
             Marker newMarker = mMap.addMarker(mo);
-            System.out.println("Added marker");
             markers.add(newMarker);
             updateOlderMarker();
 
@@ -126,7 +165,8 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
     public void updateOlderMarker() {
         if(markers.size() > 1) {
             // If there is an older marker update it so it isn't the "last recorded location"
-            Marker updateMarker = markers.get(markers.size() - 2);
+            int oldMarkerIndex = markers.size() - 2;
+            Marker updateMarker = markers.get(oldMarkerIndex);
             updateMarker.setTitle("A Recorded Location");
             updateMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE));
         }
@@ -148,10 +188,7 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_location_detail, container, false);
 
-        // Show the dummy content as text in a TextView.
-     //   if (mItem != null) {
-       //     ((TextView) rootView.findViewById(R.id.item_detail)).setText(mItem.content);
-       // }
+        locationDB = new DBLocationHelper(getActivity());
 
         if(mGoogleApiClient == null) {
             mGoogleApiClient = new Builder(getActivity())
@@ -160,24 +197,35 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
                     .build();
         }
 
-        Button btnRecordLocation = (Button) rootView.findViewById(R.id.btnRecordLocation);
+        btnRecordLocation = (Button) rootView.findViewById(R.id.btnRecordLocation);
         btnRecordLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-                }
-                catch (SecurityException se) {
-                    System.out.println("Please grant permission for location services!");
-                }
+                if(!addGeofence) {
+                    try {
+                        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                    } catch (SecurityException se) {
+                        System.out.println("Please grant permission for location services!");
+                    }
 
-                if(mLastLocation != null) {
-                    // We have connected as last location was retrieved
-                    System.out.println(mLastLocation);
-                    addMarker(mLastLocation);
-                }
-                else {
-                    Toast.makeText(getActivity(), "Unable to retrieve last known location!", Toast.LENGTH_LONG).show();
+                    if (mLastLocation != null) {
+                        // We have connected as last location was retrieved
+                        System.out.println(mLastLocation);
+                        locationDB.insertLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), true, false);
+                        addMarker(mLastLocation);
+                    } else {
+                        Toast.makeText(getActivity(), "Unable to retrieve last known location!", Toast.LENGTH_LONG).show();
+                    }
+                } else {
+
+                    CircleOptions co = new CircleOptions();
+                    co.fillColor(Color.parseColor("#3F536DFE"));
+                    co.strokeColor(Color.parseColor("#FF536DFE"));
+                    co.strokeWidth(5);
+                    co.center(selectedMarker.getPosition());
+                    co.radius(100);
+                    Circle circle = mMap.addCircle(co);
+
                 }
             }
         });

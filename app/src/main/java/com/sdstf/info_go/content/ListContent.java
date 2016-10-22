@@ -44,7 +44,6 @@ public class ListContent {
         addItem(new ListItem("6", "Record and View Bluetooth Scans", new BluetoothDetailFragment()));
         addItem(new ListItem("7", "Take and View Pictures", new PictureDetailFragment()));
         addItem(new ListItem("10", "Activity Recognition", new TrackingDetailFragment()));
-        addItem(new ListItem("4", "Item 4", new ItemDetailFragment()));
     }
 
     private static void addItem(ListItem item) {

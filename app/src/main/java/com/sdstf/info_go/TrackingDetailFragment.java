@@ -62,6 +62,9 @@ public class TrackingDetailFragment extends Fragment implements ConnectionCallba
     private ArrayList<Marker> markers = new ArrayList<>();
     private ArrayList<LatLng> points;
 
+    private boolean allowTracking = true;
+    private Button btnRecordLocation;
+
     private boolean tracking;
 
     private ActivityDetectionBroadcastReceiver mBroadcastReceiver;
@@ -186,7 +189,7 @@ public class TrackingDetailFragment extends Fragment implements ConnectionCallba
         }
 
         tracking = false;
-        final Button btnRecordLocation = (Button) rootView.findViewById(R.id.btnRecordLocation);
+        btnRecordLocation = (Button) rootView.findViewById(R.id.btnRecordLocation);
         btnRecordLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -249,20 +252,23 @@ public class TrackingDetailFragment extends Fragment implements ConnectionCallba
     @Override
     public void onLocationChanged(Location location) {
         points.add(new LatLng(location.getLatitude(), location.getLongitude()));
-        Toast.makeText(getActivity(), "Location Update", Toast.LENGTH_SHORT).show();
 
-        if(points.size() == 1) {
-            // First point. Need to init line with first point.
-            po = new PolylineOptions();
-            po.add(new LatLng(location.getLatitude(), location.getLongitude()));
-        }
-        else if(points.size() == 2) {
-            // Second point. A line can be added to map.
-            po.add(new LatLng(location.getLatitude(), location.getLongitude()));
-            polyline = mMap.addPolyline(po);
-        }
-        else {
-            polyline.setPoints(points);
+        if(allowTracking) {
+            if (points.size() == 1) {
+                // First point. Need to init line with first point.
+                po = new PolylineOptions();
+                po.add(new LatLng(location.getLatitude(), location.getLongitude()));
+            } else if (points.size() == 2) {
+                // Second point. A line can be added to map.
+                po.add(new LatLng(location.getLatitude(), location.getLongitude()));
+                polyline = mMap.addPolyline(po);
+            } else {
+                polyline.setPoints(points);
+            }
+        } else {
+            tracking = false;
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, TrackingDetailFragment.this);
+            btnRecordLocation.setText("Start Tracking");
         }
     }
 
@@ -275,13 +281,26 @@ public class TrackingDetailFragment extends Fragment implements ConnectionCallba
     }
 
     public class ActivityDetectionBroadcastReceiver extends BroadcastReceiver {
-
         @Override
         public void onReceive(Context context, Intent intent) {
             ArrayList<DetectedActivity> updatedActivities = intent.getParcelableArrayListExtra("com.sdstf.info_go.ACTIVITY_EXTRA");
-            for (DetectedActivity da : updatedActivities) {
-                System.out.println(getActivityString(da.getType()) + " " + da.getConfidence());
+
+            DetectedActivity top = new DetectedActivity(DetectedActivity.ON_FOOT, 0);
+            for(DetectedActivity da: updatedActivities) {
+                if(da.getConfidence() > top.getConfidence()) {
+                    top = da;
+                }
             }
+
+            if(top.getType() != DetectedActivity.IN_VEHICLE &&
+                    top.getType() != DetectedActivity.ON_BICYCLE &&
+                    top.getType() != DetectedActivity.STILL) {
+                allowTracking = true;
+            } else {
+                allowTracking = false;
+            }
+
+            Toast.makeText(getActivity(), getActivityString(top.getType()), Toast.LENGTH_LONG).show();
         }
     }
 

@@ -204,8 +204,8 @@ public class PictureDetailFragment extends Fragment implements ConnectionCallbac
 
     private Bitmap getPic() {
         // Get the dimensions of the View
-        int targetW = 100;
-        int targetH = 100;
+        int targetW = 150;
+        int targetH = 150;
 
         // Get the dimensions of the bitmap
         BitmapFactory.Options bmOptions = new BitmapFactory.Options();
