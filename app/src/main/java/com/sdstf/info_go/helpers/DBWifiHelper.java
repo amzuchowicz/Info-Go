@@ -9,10 +9,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
 
-/**
- * Created by kyliemmarshall on 17/10/16.
- */
-
 public class DBWifiHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "infogo2";

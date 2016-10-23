@@ -17,23 +17,24 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.Builder;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.location.DetectedActivity;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
-import com.sdstf.info_go.content.ListContent;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.common.api.GoogleApiClient.*;
-import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.sdstf.info_go.content.ListContent;
 import com.sdstf.info_go.services.DetectedActivitiesIntentService;
 
 import java.util.ArrayList;
@@ -268,6 +269,7 @@ public class TrackingDetailFragment extends Fragment implements ConnectionCallba
         } else {
             tracking = false;
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, TrackingDetailFragment.this);
+            Toast.makeText(getActivity(), "Stopped tracking! User no longer on foot", Toast.LENGTH_LONG).show();
             btnRecordLocation.setText("Start Tracking");
         }
     }

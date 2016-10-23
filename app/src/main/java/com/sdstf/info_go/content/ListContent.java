@@ -4,8 +4,6 @@ import android.app.Fragment;
 import android.os.Bundle;
 
 import com.sdstf.info_go.BluetoothDetailFragment;
-import com.sdstf.info_go.GeofenceDetailFragment;
-import com.sdstf.info_go.ItemDetailFragment;
 import com.sdstf.info_go.LocationDetailFragment;
 import com.sdstf.info_go.PictureDetailFragment;
 import com.sdstf.info_go.PlaceDetailFragment;
@@ -39,7 +37,7 @@ public class ListContent {
         // Add 3 sample items.
         addItem(new ListItem("1", "Record & View Locations", new LocationDetailFragment()));
         addItem(new ListItem("2", "View Place Information", new PlaceDetailFragment()));
-        addItem(new ListItem("3", "Geofencing Around Hot Spots", new GeofenceDetailFragment()));
+        //addItem(new ListItem("3", "Geofencing Around Hot Spots", new GeofenceDetailFragment()));
         addItem(new ListItem("5", "Record and View WiFi Scans", new WifiDetailFragment()));
         addItem(new ListItem("6", "Record and View Bluetooth Scans", new BluetoothDetailFragment()));
         addItem(new ListItem("7", "Take and View Pictures", new PictureDetailFragment()));

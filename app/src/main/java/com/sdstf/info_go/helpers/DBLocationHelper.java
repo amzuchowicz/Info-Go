@@ -9,10 +9,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
 
-/**
- * Created by Aleks on 19/10/2016.
- */
-
 public class DBLocationHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "infoGo4";
@@ -36,7 +32,7 @@ public class DBLocationHelper extends SQLiteOpenHelper {
                 + KEY_LATITUDE + " DOUBLE, "
                 + KEY_LONGITUDE + " DOUBLE, "
                 + KEY_LAST + " BOOLEAN, "
-                + KEY_GEOFENCE + " BOOLEAN " + ")";
+                + KEY_GEOFENCE + " TEXT " + ")";
         db.execSQL(CREATE_PLACE_DETAIL_TABLE);
     }
 
@@ -45,7 +41,7 @@ public class DBLocationHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
         onCreate(db);
     }
-    public boolean insertLocation(double latitude, double longitude, boolean last, boolean geofence){
+    public boolean insertLocation(double latitude, double longitude, boolean last, String geofence){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(KEY_LATITUDE , latitude);
@@ -72,13 +68,14 @@ public class DBLocationHelper extends SQLiteOpenHelper {
         int numRows = (int) DatabaseUtils.queryNumEntries(db, TABLE_NAME);
         return numRows;
     }
-    public boolean updateLocation(Integer id, double latitude, double longitude, boolean last, boolean geofence)
+    //double latitude, double longitude, boolean last,
+    public boolean updateLocation(Integer id,  String geofence)
     {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(KEY_LATITUDE , latitude);
-        contentValues.put(KEY_LONGITUDE , longitude);
-        contentValues.put(KEY_LAST , last);
+        //contentValues.put(KEY_LATITUDE , latitude);
+        //contentValues.put(KEY_LONGITUDE , longitude);
+        //contentValues.put(KEY_LAST , last);
         contentValues.put(KEY_GEOFENCE , geofence);
         db.update(TABLE_NAME, contentValues, "id = ? ", new String[] { Integer.toString(id) } );
         return true;

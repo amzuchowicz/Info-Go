@@ -1,6 +1,8 @@
 package com.sdstf.info_go;
 
 import android.app.Fragment;
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.location.Location;
@@ -13,21 +15,24 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.Builder;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
-import com.google.android.gms.maps.model.Marker;
-import com.sdstf.info_go.content.ListContent;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-
-import com.google.android.gms.common.api.GoogleApiClient.*;
+import com.sdstf.info_go.content.ListContent;
 import com.sdstf.info_go.helpers.DBLocationHelper;
+import com.sdstf.info_go.services.GeofenceTransitionsIntentService;
 
 import java.util.ArrayList;
 
@@ -51,6 +56,10 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
     private Button btnRecordLocation;
     private boolean addGeofence = false;
     private Marker selectedMarker;
+
+    private PendingIntent mGeofencePendingIntent;
+    private ArrayList<Geofence> mGeofenceList;
+    private int mIdCount = 0;
 
     private DBLocationHelper locationDB;
 
@@ -110,6 +119,9 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
                 } catch (SecurityException se) {
                     System.out.println("Please grant permission for location services!");
                 }
+
+                //LocationServices.GeofencingApi.removeGeofences(mGoogleApiClient, getGeofencePendingIntent());
+
                 int numberOfRows = locationDB.numberOfRows();
                 if(numberOfRows > 0) {
                     Cursor res = locationDB.getAll();
@@ -120,6 +132,17 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
                         loc.setLongitude(res.getDouble(res.getColumnIndex("longitude")));
                         System.out.println(res.getDouble(res.getColumnIndex("latitude")) + " "+ res.getDouble(res.getColumnIndex("longitude")));
                         addMarker(loc);
+                        if(res.getString(res.getColumnIndex("geofence")).equals("true")) {
+
+                            CircleOptions co = new CircleOptions();
+                            co.fillColor(Color.parseColor("#3F536DFE"));
+                            co.strokeColor(Color.parseColor("#FF536DFE"));
+                            co.strokeWidth(5);
+                            LatLng latLng = new LatLng(loc.getLatitude(), loc.getLongitude());
+                            co.center(latLng);
+                            co.radius(100);
+                            Circle circle = mMap.addCircle(co);
+                        }
                         res.moveToNext();
                         numberOfRows--;
                     }
@@ -189,6 +212,8 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
         View rootView = inflater.inflate(R.layout.fragment_location_detail, container, false);
 
         locationDB = new DBLocationHelper(getActivity());
+        mGeofencePendingIntent = null;
+        mGeofenceList = new ArrayList<>();
 
         if(mGoogleApiClient == null) {
             mGoogleApiClient = new Builder(getActivity())
@@ -211,20 +236,40 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
                     if (mLastLocation != null) {
                         // We have connected as last location was retrieved
                         System.out.println(mLastLocation);
-                        locationDB.insertLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), true, false);
+                        locationDB.insertLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), true, "false");
                         addMarker(mLastLocation);
                     } else {
                         Toast.makeText(getActivity(), "Unable to retrieve last known location!", Toast.LENGTH_LONG).show();
                     }
                 } else {
 
-                    CircleOptions co = new CircleOptions();
-                    co.fillColor(Color.parseColor("#3F536DFE"));
-                    co.strokeColor(Color.parseColor("#FF536DFE"));
-                    co.strokeWidth(5);
-                    co.center(selectedMarker.getPosition());
-                    co.radius(100);
-                    Circle circle = mMap.addCircle(co);
+                    int id = markers.indexOf(selectedMarker) + 1;
+                    Cursor res = locationDB.getData(id);
+                    res.moveToFirst();
+                    String result = res.getString(res.getColumnIndex("geofence"));
+                    System.out.println("id = " + id);
+                    System.out.println("result = " + result);
+
+                    if(result.equals("false")) {
+                        mGeofenceList.add(new Geofence.Builder()
+                                .setRequestId(mIdCount + "") // set the request ID of the geofence. This is a string to identify this geofence.
+                                .setCircularRegion(selectedMarker.getPosition().latitude, selectedMarker.getPosition().longitude, 100) // lat, long, radius in meters
+                                .setExpirationDuration(Geofence.NEVER_EXPIRE) // in milliseconds
+                                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+                                .build());
+                        mIdCount++;
+                        addGeofences();
+
+                        CircleOptions co = new CircleOptions();
+                        co.fillColor(Color.parseColor("#3F536DFE"));
+                        co.strokeColor(Color.parseColor("#FF536DFE"));
+                        co.strokeWidth(5);
+                        co.center(selectedMarker.getPosition());
+                        co.radius(100);
+                        Circle circle = mMap.addCircle(co);
+
+                        locationDB.updateLocation(id, "true");
+                    }
 
                 }
             }
@@ -232,16 +277,32 @@ public class LocationDetailFragment extends Fragment implements ConnectionCallba
         return rootView;
     }
 
-    /*
-    @Override
-    public void onDestroyView() {
-        super.onDestroy();
-        // Map fragment needs to be manually destroyed here for pre 5.0.
-        // Otherwise causes duplicate fragment to be recreated with same id and crashes.
-        MapFragment mf = (MapFragment) getFragmentManager().findFragmentById(R.id.LocationMap);
-        getFragmentManager().beginTransaction().remove(mf).commit();
+    public void addGeofences() {
+        try {
+            LocationServices.GeofencingApi.addGeofences(mGoogleApiClient, getGeofencingRequest(), getGeofencePendingIntent());
+        }
+        catch (SecurityException se) {
+            System.out.println("Please grant permission for location services!");
+        }
     }
-    */
+
+    private GeofencingRequest getGeofencingRequest() {
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+        builder.addGeofences(mGeofenceList);
+        return builder.build();
+    }
+
+    private PendingIntent getGeofencePendingIntent() {
+        // Reuse the PendingIntent if we already have it.
+        if(mGeofencePendingIntent != null) {
+            return mGeofencePendingIntent;
+        }
+        Intent intent = new Intent(getActivity(), GeofenceTransitionsIntentService.class);
+        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
+        // calling addGeofences() and removeGeofences().
+        return PendingIntent.getService(getActivity(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
